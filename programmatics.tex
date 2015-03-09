@@ -1,0 +1,47 @@
+\section{Programmatics}
+\label{sec:programmatics}
+
+\subsection{Planned Work / Schedule}
+\label{sec:programmatics:work}
+
+The work to be done can be broken down by the following tasks with the
+associated deadline for completion.
+
+\begin{itemize}
+	\item[1.]{Compare parallel implementations of gSpan and ShaFEM to
+		  deterine which is most likely to benefit from MPI (1 week)}
+	\item[2.]{Initial implementation of frequent subgraph mining
+		  algorithm using MPI (2 weeks)}
+	\item[3.]{Optimize implementation using performance data from several
+		  different datasets (3 weeks)}
+	\item[4.]{Gather final performance measurements (1 week)}
+	\item[5.]{Paper (1 week)}
+\end{itemize}
+
+For a total time of approximately 8 weeks of work.
+
+\subsection{Division of Labor}
+
+This project will be a collaborative effort between John and Samuel.
+As John is more familiar with the problem space and the algorithms available,
+John will take the lead in doing the inital implementation of the algorithm
+for MPI, with strong input from Samuel.  The code will be maintained in a 
+shared repository with both John and Samuel having access to it. Samuel 
+will be more involved in optimizing the implementation once it works.  Both
+John and Samuel will be actively involved in taking measurements and writing
+the paper collaboratively.
+
+\subsection{Potential Issues}
+
+The main potential issue with this project is the lack of direct access to
+existing parallel implementations of the potential algorithms. This will 
+require writing and debugging one from existing papers, and could lead to 
+more time spent on implementation than performance tuning. 
+
+Another potential issue is that the performance of an MPI implementation 
+of these algorithms may not provide much performance benefit over the 
+existing CUDA or shared-memory iplementations already discussed.  If this
+proves to be true, we can still discuss where bottlenecks exist and why
+an MPI implementation is less performant.
+
+
