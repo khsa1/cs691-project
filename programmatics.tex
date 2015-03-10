@@ -8,8 +8,7 @@ The work to be done can be broken down by the following tasks with the
 associated deadline for completion.
 
 \begin{itemize}
-	\item[1.]{Compare parallel implementations of gSpan and ShaFEM to
-		  deterine which is most likely to benefit from MPI (1 week)}
+	\item[1.]{Port an existing gSpan implementation to C (1 week)}
 	\item[2.]{Initial implementation of frequent subgraph mining
 		  algorithm using MPI (2 weeks)}
 	\item[3.]{Optimize implementation using performance data from several
@@ -36,12 +35,13 @@ the paper collaboratively.
 The main potential issue with this project is the lack of direct access to
 existing parallel implementations of the potential algorithms. This will 
 require writing and debugging one from existing papers, and could lead to 
-more time spent on implementation than performance tuning. 
+more time spent on implementation than performance tuning.  
 
 Another potential issue is that the performance of an MPI implementation 
 of these algorithms may not provide much performance benefit over the 
-existing CUDA or shared-memory iplementations already discussed.  If this
+existing CUDA or shared-memory iplementations already discussed.  gSpan 
+benefits greatly from shared memory, so it may be difficult to create
+a high performance system on a distributes shared memory machine. If this
 proves to be true, we can still discuss where bottlenecks exist and why
 an MPI implementation is less performant.
-
 

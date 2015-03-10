@@ -1,5 +1,16 @@
 \section{Algorithm}
 
-We'll probably parallelize gSpan using the algorithm cited in \cite{gspancuda}.
+We will look for ways to parallelize gSpan.  The naive implementation will
+attempt to parallelize the DFS code generation stage of gSpan, which is
+generated from all the 1-edge graphs in Algorithm 1 in \cite{gspan}.  
+Shared-memory implementations do this.  This should lead to a pure 
+MPI implementation of algorithm.  However, since the computational
+complexity of each recursive subgraph mining is unknown, this will lead
+to an unbalanced amount of work on each node. 
 
-XXXjc: more.
+With that in mind, we will experiment with more ways to distribute the work, 
+and explore a hybrid MPI and shared memory model in the hopes of getting
+better results. 
+
+
+
