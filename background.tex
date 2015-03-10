@@ -4,12 +4,12 @@
 The dominant FSM algorithm over the past decade has been gSpan\cite{gspan}. 
 gSpan has been shown to give good performance relative to other existing
 systems from both a computational time and memory consumption standpoint.
-gSpan and algorithms like it are difficult to parallelise as it does a 
+gSpan and algorithms like it are difficult to parallelize as it does a 
 recursive depth-first search of its solution space, which is difficult to 
 parallelize.  
 
 Despite this, Buehrer et al. produces a shared-memory
-parallel verson of a gSpan-like algorithm that achieved good speedup on a 
+parallel version of a gSpan-like algorithm that achieved good speedup on a 
 single NUMA system\cite{buehrer2005parallel}.  In this work, they cite 
 memory contention as one of their main bottlenecks. It is our hope that
 a distributed memory systems implementation using MPI may not suffer
@@ -18,7 +18,7 @@ GPU\cite{gspancuda}, again achieving good results.  However, the use of a
 GPU without any other higher-layer parallel framework limits the problem
 size to the relatively small resources of a GPU. 
 
-The success of these two previous implementations leads to two intersting
+The success of these two previous implementations leads to two interesting
 conclusions:
 \begin{itemize}
 	\item{That gSpan-like systems can be parallelized}
