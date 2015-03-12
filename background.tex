@@ -12,7 +12,7 @@ Despite this, Buehrer et al. produced a shared-memory
 parallel version of a gSpan-like algorithm that achieved good speedup on a 
 single NUMA system\cite{buehrer2005parallel}.  They achieved this by 
 farming out the work of doing the depth first search for a candidate 
-subgraph to a different thread, and used used a dynamic queueing 
+subgraph to a different thread, and used a dynamic queueing 
 system to spread the work out more evenly and address the variable
 mining time issue.  In this work, they cite 
 memory contention as one of their main bottlenecks. It is our hope that
@@ -23,7 +23,7 @@ More recently, Wang et al. parallelized gSpan using a
 GPU\cite{gspancuda}, again achieving good results.  They parallelized both
 the subgraph mining and the generation of the DFS canonical lexical 
 ordering of nodes.  They rely on the built-in NVIDIA CUDA scheduler to handle
-any queued up work from what they find. vHowever, the use of a 
+any queued up work from what they find. However, the use of a 
 GPU without any other higher-layer parallel framework limits the problem
 size to the relatively small resources of a GPU. 
 
