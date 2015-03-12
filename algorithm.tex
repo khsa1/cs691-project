@@ -1,16 +1,24 @@
 \section{Algorithm}
 
-We will look for ways to parallelize gSpan.  The naive implementation will
-attempt to parallelize the DFS code generation stage of gSpan, which is
-generated from all the 1-edge graphs in Algorithm 1 in \cite{gspan}.  
-Shared-memory implementations do this.  This should lead to a pure 
-MPI implementation of algorithm.  However, since the computational
-complexity of each recursive subgraph mining is unknown, this will lead
-to an unbalanced amount of work on each node. 
+Using the previous work as a guide, we will explore various ways to 
+parallelize gSpan\cite{gspan} using MPI.  Our first attempt will be to 
+duplicate the algorithm used by \cite{buehrer2005parallel} and use
+a dynamic queueing mechanism to farm the work of child candidate 
+graph generation out to parallell nodes.  We will then conduct these 
+experiments to attempt to improve the performance of the system:
 
-With that in mind, we will experiment with more ways to distribute the work, 
-and explore a hybrid MPI and shared memory model in the hopes of getting
-better results. 
+\begin{enumerate}
+	\item{Implement other queueing mechanisms to see if they perform
+		better in distributed memory environment than dynamic
+		queueing}
+	\item{Attempt to parallelize the DFS code generation step as well
+		as the subgraph mining step}
+	\item{Explore a hybrid approach that uses a combination of 
+		MPI for inter-node and pthreads or OpenMP for intra-node
+		communication.}
+\end{enumerate}
 
-
+An analysis of these variations should illuminate useful techniques that
+can be applied to a wider range of mining problems than the current
+parallel gSpan systems can handle.
 
