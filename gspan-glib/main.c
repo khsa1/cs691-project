@@ -34,5 +34,9 @@ int main(int argc, char **argv)
 	database = read_graphs(argv[1], frequent);
 	printf("done.\n");
 	printf("Database contains %d graphs\n", g_list_length(database));
+
+
+
+	clean_database(database);
 	return 0;
 }

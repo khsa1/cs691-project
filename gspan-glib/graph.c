@@ -31,6 +31,11 @@ void edge_free(struct edge *e)
 		free(e);
 }
 
+void edge_free_cb(void *e)
+{
+	edge_free((struct edge *)e);
+}
+
 struct node *node_new(uint32_t id, int32_t label, GList *edges)
 {
 	struct node *ret;
@@ -54,7 +59,7 @@ struct node *node_new(uint32_t id, int32_t label, GList *edges)
 void node_free(struct node *n)
 {
 	if (n->edges)
-		g_list_free(n->edges);
+		g_list_free_full(n->edges, (GDestroyNotify)edge_free_cb);
 	free(n);
 }
 
