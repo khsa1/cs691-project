@@ -20,7 +20,7 @@ GList *read_graphs(const char *filename, GList *frequent)
 
 	id_map = g_hash_table_new(g_direct_hash, NULL);
 
-	if ((fp = fopen(filename, "r+")) == NULL) {
+	if ((fp = fopen(filename, "r")) == NULL) {
 		perror("Opening DB file\n");
 		return NULL;
 	}

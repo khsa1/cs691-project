@@ -14,8 +14,8 @@ void clean_database(GList *database)
 int main(int argc, char **argv)
 {
 	struct gspan gs;
-	GList *database;
-	GList *frequent, *l;
+	GList *database = NULL;
+	GList *frequent = NULL;
 
 	printf("Reading graph database... ");
 	database = read_graphs(argv[1], NULL);
@@ -28,15 +28,17 @@ int main(int argc, char **argv)
 	frequent = find_frequent_node_labels(database, gs.nsupport);
 	printf("%d labels\n", g_list_length(frequent));
 
+        print_graph((struct graph *)g_list_first(database)->data, -1);
+
 	clean_database(database);
 
 	printf("Pruning infrequent nodes... ");
-	database = read_graphs(argv[1], frequent);
+	gs.database = read_graphs(argv[1], frequent);
 	printf("done.\n");
 	printf("Database contains %d graphs\n", g_list_length(database));
 
+	print_graph((struct graph *)g_list_first(gs.database)->data, -1);
 
-
-	clean_database(database);
+	clean_database(gs.database);
 	return 0;
 }

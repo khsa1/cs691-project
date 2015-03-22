@@ -19,11 +19,6 @@ struct pre_dfs {
 	struct pre_dfs *prev;
 };
 
-struct history {
-	GList *edge_labels;
-	GList *node_labels;
-};
-
 struct gspan {
 	GList *database;
 	double support;

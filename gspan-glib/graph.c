@@ -7,6 +7,8 @@
 
 #include <graph.h>
 
+static int _graph_count = 0;
+
 struct edge *edge_new(uint32_t id, int32_t label, uint32_t to, uint32_t from)
 {
 	struct edge *ret;
@@ -131,4 +133,48 @@ void graph_clear(struct graph *g)
 	return;
 }
 
+void print_graph(struct graph *g, int support)
+{
+	GList *l1, *l2, *l3;
+	GList *edges = NULL;
 
+	if (support > 0)
+		printf("t # %d * %d\n", _graph_count, support);
+	else
+		printf("t # %d\n", _graph_count);
+
+	for (l1 = g_list_first(g->nodes); l1; l1 = g_list_next(l1)) {
+		struct node *n = (struct node *)l1->data;
+		printf("v %d %d\n", n->id, n->label);
+
+		for (l2 = g_list_first(n->edges); l2; l2 = g_list_next(l2)) {
+			struct edge *e = (struct edge *)l2->data;
+			int found = 0;
+			
+			for (l3 = g_list_first(edges); l3; 
+						l3 = g_list_next(l3)) {
+				struct edge *e2 = (struct edge *)l3->data;
+
+				if (e->id == e2->id) {
+					found = 1;
+					break;
+				}	
+			}
+
+			if (!found)
+				edges = g_list_prepend(edges, e);
+		}
+	}
+	edges = g_list_reverse(edges);
+
+	for (l1 = g_list_first(edges); l1; l1 = g_list_next(l1)) {
+		struct edge *e = (struct edge *)l1->data;
+
+		printf("e %d %d %d\n", e->from, e->to, e->label);
+	}
+
+	g_list_free(edges);
+	printf("\n");
+
+	return;
+}
