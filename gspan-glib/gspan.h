@@ -26,7 +26,7 @@ struct gspan {
 	GList *subgraphs;
 	GList *dfs_codes;
 	GList *min_dfs_codes;
-	struct graph min_graph;
+	struct graph *min_graph;
 };
 
 static inline int dfs_code_equal(const struct dfs_code *a, 

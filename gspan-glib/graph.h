@@ -37,6 +37,7 @@ void graph_set_nodes(struct graph *g, GList *nodes);
 void graph_clear(struct graph *g);
 void graph_free(struct graph *g);
 void graph_free_cb(void *g);
+struct graph *build_graph_dfs(GList *dfs_codes);
 
 /* fileio.c */
 GList *read_graphs(const char *filename, GList *frequent);

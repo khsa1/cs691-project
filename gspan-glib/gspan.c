@@ -372,3 +372,264 @@ int count_support(GList *pdfs)
 	return size;
 }
 
+unsigned int dfs_code_hash(const void *key)
+{
+	struct dfs_code *dfsc = (struct dfs_code *)key;
+	unsigned int ret;
+
+	ret = 0 | (dfsc->from << 24) | (dfsc->to << 16) | 
+		(dfsc->from_label << 8) | (dfsc->edge_label << 0);
+
+	/* 
+	 * don't have enough bits on 32-bit to include to_label directly
+	 * This just means a little worse hash table performance.
+	 */ 
+	return ret;
+}
+
+gboolean glib_dfs_code_equal(const void *a, const void *b)
+{
+	if (dfs_code_equal((const struct dfs_code *)a, 
+				(const struct dfs_code *)b))
+		return TRUE;
+	return FALSE;
+}
+
+void cleanup_map(GHashTable *map)
+{
+	GList *lists, *l;
+
+	lists = g_hash_table_get_values(map);
+
+	for (l = g_list_first(lists); l; l = g_list_next(l)) {
+		GList *to_delete = (GList *)l->data;
+
+		g_list_free_full(to_delete, (GFreeFunc)free);
+	}
+	
+	g_list_free(lists);
+
+	lists = NULL;
+
+	lists = g_hash_table_get_keys(map);
+	for (l = g_list_first(lists); l; l = g_list_next(l)) {
+		struct dfs_code *to_delete = (struct dfs_code *)l->data;
+
+		free(to_delete);
+	}
+	
+	g_list_free(lists);
+	
+	g_hash_table_destroy(map);
+
+	return;
+}
+
+int is_min(struct gspan *gs)
+{
+	GHashTable *projection_map;
+	GList *l1, *l2, *edges, *values;
+	struct pre_dfs *pm;
+	struct dfs_code *first_key, *start_code;
+	int ret;
+
+	if (g_list_length(gs->dfs_codes) == 1)
+		return 1;
+
+	g_list_free_full(gs->min_dfs_codes, (GDestroyNotify)free);
+	gs->min_dfs_codes = NULL;
+
+	graph_free(gs->min_graph);
+	gs->min_graph = build_graph_dfs(gs->dfs_codes);
+
+	projection_map = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
+
+	for (l1=g_list_first(gs->min_graph->nodes); l1; l1=g_list_next(l1)) {
+		struct node *n = (struct node *)l1->data;
+
+		edges = get_forward_init(n, gs->min_graph);
+
+		if (g_list_length(edges) == 0) {
+			g_list_free(edges);
+			continue;
+		}
+
+		for (l2 = g_list_first(edges); l2; l2 = g_list_next(l2)) {
+			struct edge *e = (struct edge *)l2->data;
+			struct node *from_node, *to_node;
+			struct dfs_code *dfsc;
+			struct pre_dfs *npdfs;
+
+			from_node = graph_get_node(gs->min_graph, e->from);
+			to_node = graph_get_node(gs->min_graph, e->to);
+
+			dfsc = malloc(sizeof(struct dfs_code));
+			if (!dfsc) {
+				perror("malloc dfsc in is_min");
+				exit(1);
+			}
+			dfsc->from = 0;
+			dfsc->to = 1;
+			dfsc->from_label = from_node->label;
+			dfsc->edge_label = e->label;
+			dfsc->to_label = to_node->label;
+
+			npdfs = malloc(sizeof(struct pre_dfs));
+			if (!npdfs) {
+				perror("malloc npdfs in is_min");
+				exit(1);
+			}
+			npdfs->id = 0;
+			npdfs->edge = e;
+			npdfs->prev = NULL;
+
+			if (g_hash_table_contains(projection_map, dfsc))
+				values = g_hash_table_lookup(projection_map, 
+									dfsc);
+			values = g_list_append(values, npdfs);
+			g_hash_table_insert(projection_map, dfsc, values);
+		}
+	}
+
+	l2 = g_hash_table_get_keys(projection_map);
+	l2 = g_list_sort(l2, (GCompareFunc)dfs_code_project_compare);
+	first_key = (struct dfs_code *)g_list_first(l2)->data;
+	g_list_free(l2);
+
+	start_code = malloc(sizeof(struct dfs_code));
+	if (!start_code) {
+		perror("malloc start_code in is_min");
+		exit(1);
+	}
+	start_code->from = 0;
+	start_code->to = 1;
+	start_code->from_label = first_key->from_label;
+	start_code->edge_label = first_key->edge_label;
+	start_code->to_label = first_key->to_label;
+
+	gs->min_dfs_codes = g_list_append(gs->min_dfs_codes, start_code);
+
+	if (!dfs_code_equal(
+				g_list_nth_data(gs->dfs_codes, 
+					g_list_length(gs->min_dfs_codes)-1), 
+				g_list_last(gs->min_dfs_codes)->data)) 
+		return 0;
+	
+	values = g_hash_table_lookup(projection_map, start_code);
+	ret = projection_min(gs, values);
+
+	cleanup_map(projection_map);
+	g_list_free(values);
+
+	return ret;
+}
+
+int judge_backwards(struct gspan *gs, GList *right_most_path, GList *projection,
+						GHashTable *pm_backwards)
+{
+	GList *l1, *l2, *l3, *values = NULL;
+	int i;
+	int rmp0;
+
+	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
+
+	for (i=g_list_length(right_most_path)-1,l1=g_list_last(right_most_path);
+					i > 1; i--, l1 = g_list_previous(l1)) {
+		int rmp = GPOINTER_TO_INT(l1->data);
+
+		for(l2 = g_list_first(projection); l2; l2 = g_list_next(l2)) {
+			struct pre_dfs *p = (struct pre_dfs *)l2->data;
+			struct history *h;
+			struct edge *last_edge;
+			struct node *last_node, *to_node, *from_node;
+			struct edge *edge;
+			
+			h = alloc_history();
+			build_history(h, p);
+
+			last_edge = (struct edge *)
+					g_list_nth_data(h->edges, rmp0);
+			last_node = graph_get_node(gs->min_graph, 
+								last_edge->to);
+			edge = (struct edge *)
+					g_list_nth_data(h->edges, rmp);
+			to_node = graph_get_node(gs->min_graph, edge->to);
+			from_node = graph_get_node(gs->min_graph, edge->from);
+
+			for (l3 = g_list_first(last_node->edges); l3; 
+							l3 = g_list_next(l3)) {
+				struct edge *e = (struct edge *)l3->data;
+
+				if (g_hash_table_contains(h->has_edges, 
+							GINT_TO_POINTER(e->id)))
+					continue;
+
+				if (!g_hash_table_contains(h->has_nodes, 
+							GINT_TO_POINTER(e->to)))
+					continue;
+
+				if (e->to == edge->from && 
+						(e->label > edge->label || 
+						(e->label == edge->label &&
+							last_node->label > 
+							to_node->label))) {
+					struct dfs_code *dfsc;
+					struct pre_dfs *npdfs;
+					int from_id;
+					int to_id;
+
+					from_id = ((struct dfs_code *)
+							g_list_nth_data(
+							gs->min_dfs_codes, 
+							rmp0))->to;
+
+					to_id = ((struct dfs_code *)
+							g_list_nth_data(
+							gs->min_dfs_codes, 
+							rmp0))->from;
+
+					dfsc = malloc(sizeof(struct dfs_code));
+					if (!dfsc) {
+						perror("malloc dfsc in jb()");
+						exit(1);
+					}
+					dfsc->from = from_id;
+					dfsc->to = to_id;
+					dfsc->from_label = last_node->label;
+					dfsc->edge_label = e->label;
+					dfsc->to_label = from_node->label;
+
+					npdfs = malloc(sizeof(struct pre_dfs));
+					if (!npdfs) {
+						perror("malloc npdfs in jb()");
+						exit(1);
+					}
+					npdfs->id = 0;
+					npdfs->edge = e;
+					npdfs->prev = p;
+
+					if (g_hash_table_contains(pm_backwards, 
+									dfsc))
+						values = g_hash_table_lookup(
+							pm_backwards,dfsc);
+					values = g_list_append(values, npdfs);
+					g_hash_table_insert(pm_backwards, dfsc,
+									values);
+
+				}
+			}
+			free_history(h);
+		}
+
+		l3 = g_hash_table_get_keys(pm_backwards);
+		if (g_list_length(l3) > 0) {
+			g_list_free(l3);
+			return 1;
+		}
+		g_list_free(l3);
+	}
+
+	return 0;
+}
+
+

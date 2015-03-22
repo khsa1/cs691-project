@@ -6,6 +6,7 @@
 #include <glib.h>
 
 #include <graph.h>
+#include <gspan.h>
 
 static int _graph_count = 0;
 
@@ -178,3 +179,69 @@ void print_graph(struct graph *g, int support)
 
 	return;
 }
+
+struct graph *build_graph_dfs(GList *dfs_codes)
+{
+	struct graph *ret;
+	GList *l;
+	int numnodes = 0;
+	int i;
+
+	ret = graph_new(0,0,NULL);
+
+	for (l = g_list_first(dfs_codes); l; l = g_list_next(l)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l->data;
+
+		if (dfsc->from > numnodes)
+			numnodes = dfsc->from;
+
+		if (dfsc->to > numnodes)
+			numnodes = dfsc->to;
+	}
+
+	for (i = 0; i < (numnodes + 1); i++)
+		ret->nodes = g_list_append(ret->nodes, node_new(0,0,NULL));
+	
+	for (i = 0, l = g_list_first(dfs_codes); l; i++,l = g_list_next(l)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l->data;
+		struct edge *e1, *e2;
+		struct node *from_node, *to_node;
+
+		from_node = graph_get_node(ret, dfsc->from);
+		to_node = graph_get_node(ret, dfsc->to);
+
+		from_node->id = dfsc->from;
+		from_node->label = dfsc->from_label;
+		to_node->id = dfsc->to;
+		to_node->label = dfsc->to_label;
+
+		e1 = malloc(sizeof(struct edge));
+		if (!e1) {
+			perror("allocating e1 edge in build_fraph_dfs");
+			graph_free(ret);
+			return NULL; 
+		}
+		e1->id = ret->nedges;
+		e1->from = dfsc->from;
+		e1->to = dfsc->to;
+		e1->label = dfsc->edge_label;
+		from_node->edges = g_list_append(from_node->edges, e1);
+
+		e2 = malloc(sizeof(struct edge));
+		if (!e2) {
+			perror("allocating e2 edge in build_fraph_dfs");
+			graph_free(ret);
+			return NULL; 
+		}
+		e2->id = e1->id;
+		e2->label = e1->label;
+		e2->from = dfsc->to;
+		e2->to = dfsc->from;
+		to_node->edges = g_list_append(to_node->edges, e2);
+
+		ret->nedges ++;
+	}
+
+	return ret;
+}
+
