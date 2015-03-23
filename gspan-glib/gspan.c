@@ -19,6 +19,17 @@ static void print_dfs(struct dfs_code *dfsc)
 			dfsc->edge_label, dfsc->to_label);
 }
 
+static void print_pre_dfs(struct pre_dfs *pdfs)
+{
+	printf("(id=%d, edge=(%d,%d,%d), prev=%p)", pdfs->id, pdfs->edge->from, 
+		pdfs->edge->to, pdfs->edge->label, pdfs->prev);
+}
+
+static void print_edge(struct edge *e)
+{
+	printf("(id=%d, from=%d, to=%d, labal=%d)",e->id, e->from, e->to, e->label);
+}
+
 GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map)
 {
 	int i, j, *key, *value;
@@ -119,8 +130,10 @@ GList *get_forward_init(struct node *n, struct graph *g)
 	for(l = g_list_first(n->edges); l; l = g_list_next(l)) {
 		struct edge *e = (struct edge *)l->data;
 
-		if (n->label <= graph_get_node(g, e->to)->label)
+		if (n->label <= graph_get_node(g, e->to)->label) {
 			ret = g_list_append(ret, e);
+			//print_edge(e);
+		}
 	}
 
 	return ret;
@@ -436,7 +449,7 @@ void cleanup_map(GHashTable *map)
 int is_min(struct gspan *gs)
 {
 	GHashTable *projection_map;
-	GList *l1, *l2, *edges, *values;
+	GList *l1, *l2, *edges, *values = NULL;
 	struct pre_dfs *pm;
 	struct dfs_code *first_key, *start_code;
 	int ret;
@@ -447,7 +460,8 @@ int is_min(struct gspan *gs)
 	g_list_free_full(gs->min_dfs_codes, (GDestroyNotify)free);
 	gs->min_dfs_codes = NULL;
 
-	graph_free(gs->min_graph);
+	if (gs->min_graph)
+		graph_free(gs->min_graph);
 	gs->min_graph = build_graph_dfs(gs->dfs_codes);
 
 	projection_map = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
@@ -969,6 +983,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 				values = g_list_append(values, npdfs);
 				g_hash_table_insert(projection_map, dfsc, 
 									values);
+				values = NULL;
 			}
 
 			g_list_free(edges);
@@ -990,6 +1005,10 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 			continue;
 		}
 
+		print_dfs(dfsc);
+		printf(" %d\n", g_list_length(values));
+
+
 		start_code = malloc(sizeof(struct dfs_code));
 		if (!start_code) {
 			perror("malloc start_code in project");
@@ -1006,7 +1025,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 		mine_subgraph(gs, values);
 
 		l2 = g_list_remove_link(gs->dfs_codes, g_list_last(gs->dfs_codes));
-		free((struct dfs_code *)l2->data);
+		//free((struct dfs_cod:we *)l2->data);
 		g_list_free(l2);
 	}
 
