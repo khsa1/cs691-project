@@ -10,15 +10,23 @@
 #include <graph.h>
 #include <history.h>
 
-GList *find_frequent_node_labels(GList *database, int nsupport)
+void mine_subgraph(struct gspan *gs, GList *projection);
+
+static void print_dfs(struct dfs_code *dfsc)
+{
+	printf("(from=%d, to=%d, from_label=%d, edge_label=%d, to_label=%d)", 
+			dfsc->from, dfsc->to, dfsc->from_label, 
+			dfsc->edge_label, dfsc->to_label);
+}
+
+GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map)
 {
 	int i, j, *key, *value;
 	GHashTableIter iter;
-	GHashTable *map;
 	GList *ret = NULL;
 	GList *l = NULL;
 
-	map = g_hash_table_new(g_direct_hash, g_direct_equal);
+	//map = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	/* 
 	 * Iterate over all graphs in the database, and determine how
@@ -77,7 +85,6 @@ GList *find_frequent_node_labels(GList *database, int nsupport)
 			continue;
 		ret = g_list_append(ret, key);
 	}
-	g_hash_table_destroy(map);
 
 	return ret;
 }
@@ -102,30 +109,6 @@ GList *build_right_most_path(GList *dfs_codes)
 	}
 
 	return ret;
-}
-
-void enumerate(struct gspan *gs, GList *projections, GList *right_most_path,
-			GHashTable *pm_backward, GHashTable *pm_forward, 
-			int min_label)
-{
-	GList *l;
-
-	for (l = g_list_first(projections); l; l = g_list_next(l)) {
-		struct pre_dfs *p = (struct pre_dfs *)l->data;
-		struct history *h;
-
-		h = alloc_history();
-		build_history(h, p);
-
-		get_backward(gs, p, right_most_path, h, pm_backward);
-		get_first_forward(gs, p, right_most_path, h, pm_forward, 
-								min_label);
-		get_other_forward(gs, p, right_most_path, h, pm_forward, 
-								min_label);
-		free_history(h);
-	}
-
-	return;
 }
 
 GList *get_forward_init(struct node *n, struct graph *g)
@@ -354,6 +337,31 @@ void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 		}
 	}
 }
+
+void enumerate(struct gspan *gs, GList *projections, GList *right_most_path,
+			GHashTable *pm_backward, GHashTable *pm_forward, 
+			int min_label)
+{
+	GList *l;
+
+	for (l = g_list_first(projections); l; l = g_list_next(l)) {
+		struct pre_dfs *p = (struct pre_dfs *)l->data;
+		struct history *h;
+
+		h = alloc_history();
+		build_history(h, p);
+
+		get_backward(gs, p, right_most_path, h, pm_backward);
+		get_first_forward(gs, p, right_most_path, h, pm_forward, 
+								min_label);
+		get_other_forward(gs, p, right_most_path, h, pm_forward, 
+								min_label);
+		free_history(h);
+	}
+
+	return;
+}
+
 
 int count_support(GList *pdfs)
 {
@@ -872,4 +880,206 @@ int projection_min(struct gspan *gs, GList *projection)
 	return 1;
 }
 
+void show_subgraph(GList *dfs_codes, int nsupport)
+{
+	struct graph *g;
+	
+	g = build_graph_dfs(dfs_codes);
+	print_graph(g, nsupport);
+	graph_free(g);
 
+	return;
+}
+
+int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
+{
+	GHashTable *projection_map;
+	GList *l1, *l2, *l3, *edges, *values=NULL, *keys;
+	struct pre_dfs *pm;
+	struct dfs_code *first_key, *start_code;
+	int ret;
+
+	if (gs->dfs_codes != NULL)
+		g_list_free_full(gs->dfs_codes, (GDestroyNotify)free);
+	gs->dfs_codes = NULL;
+
+	for (l1 = g_list_first(frequent_nodes); l1; l1 = g_list_next(l1)) {
+		int nodelabel = GPOINTER_TO_INT(l1->data);
+		int nodesup = GPOINTER_TO_INT(
+				g_hash_table_lookup(freq_labels, 
+					GINT_TO_POINTER(nodelabel)));
+
+		print_graph_node(nodelabel, nodesup);
+	}
+
+	projection_map = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
+
+	for(l1 = g_list_first(gs->database); l1; l1 = g_list_next(l1)) {
+		struct graph *g = (struct graph *)l1->data;
+
+		for (l2 = g_list_first(g->nodes); l2; l2 = g_list_next(l2)) {
+			struct node *n = (struct node *)l2->data;
+			GList *edges;
+
+			edges = get_forward_init(n, g);
+
+			if (g_list_length(edges) == 0) {
+				g_list_free(edges);
+				continue;
+			}
+			for(l3 = g_list_first(edges); l3; l3=g_list_next(l3)) {
+				struct edge *e = (struct edge *)l3->data;
+				struct node *from_node;
+				struct node *to_node;
+				struct dfs_code *dfsc;
+				struct pre_dfs *npdfs;
+
+				from_node = graph_get_node(g, e->from);
+				to_node = graph_get_node(g, e->to);
+
+				dfsc = malloc(sizeof(struct dfs_code));
+				if (!dfsc) {
+					perror("malloc dfsc in jf()");
+					exit(1);
+				}
+				dfsc->from = 0;
+				dfsc->to = 1;
+				dfsc->from_label = from_node->label;
+				dfsc->edge_label = e->label;
+				dfsc->to_label = to_node->label;
+	
+				npdfs = malloc(sizeof(struct pre_dfs));
+				if (!npdfs) {
+					perror("malloc npdfs in jf()");
+					exit(1);
+				}
+				npdfs->id = g->id;
+				npdfs->edge = e;
+				npdfs->prev = NULL;
+
+				//print_dfs(dfsc);
+				//printf("\n");
+				//fflush(stdout);
+	
+				if (g_hash_table_contains(projection_map, dfsc)) {
+					//printf("Here1\n");
+					values = g_hash_table_lookup(
+							projection_map, dfsc);
+				}
+				values = g_list_append(values, npdfs);
+				g_hash_table_insert(projection_map, dfsc, 
+									values);
+			}
+
+			g_list_free(edges);
+			edges = NULL;
+		}
+	}
+
+	keys = g_hash_table_get_keys(projection_map);
+	keys = g_list_sort(keys, (GCompareFunc)dfs_code_project_compare);
+
+	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+		struct dfs_code *start_code; 
+
+		values = g_hash_table_lookup(projection_map, dfsc);
+
+		if (g_list_length(values) < gs->nsupport) {
+			g_list_free(values);
+			continue;
+		}
+
+		start_code = malloc(sizeof(struct dfs_code));
+		if (!start_code) {
+			perror("malloc start_code in project");
+			exit(1);
+		}
+		start_code->from = 0;
+		start_code->to = 1;
+		start_code->from_label = dfsc->from_label;
+		start_code->edge_label = dfsc->edge_label;
+		start_code->to_label = dfsc->to_label;
+
+		gs->dfs_codes = g_list_append(gs->dfs_codes, start_code);
+
+		mine_subgraph(gs, values);
+
+		l2 = g_list_remove_link(gs->dfs_codes, g_list_last(gs->dfs_codes));
+		free((struct dfs_code *)l2->data);
+		g_list_free(l2);
+	}
+
+	cleanup_map(projection_map);
+
+	return 0;
+}
+
+void mine_subgraph(struct gspan *gs, GList *projection)
+{
+	int support;
+	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
+	int min_label;
+	GHashTable *pm_forwards, *pm_backwards;
+
+	support = count_support(projection);
+	if (support < gs->nsupport)
+		return;
+
+	if (!is_min(gs))
+		return;
+
+	show_subgraph(gs->dfs_codes, support);
+
+	right_most_path = build_right_most_path(gs->dfs_codes);
+	min_label = ((struct dfs_code *)g_list_first(gs->dfs_codes))->from_label;
+
+	pm_forwards = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
+	pm_backwards = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
+
+	enumerate(gs, projection, right_most_path, pm_backwards, pm_forwards, 
+								min_label);
+
+	keys = g_hash_table_get_keys(pm_backwards);
+	keys = g_list_sort(keys, (GCompareFunc)dfs_code_backward_compare);
+
+	for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+
+		values = g_hash_table_lookup(pm_backwards, dfsc);
+
+		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
+		mine_subgraph(gs, values);
+		l2 = g_list_remove_link(gs->dfs_codes, g_list_last(gs->dfs_codes));
+		free((struct dfs_code *)l2->data);
+		g_list_free(l2);
+		g_list_free(values);
+		values = NULL;
+	}
+
+	g_list_free(keys);
+
+	keys = g_hash_table_get_keys(pm_forwards);
+	keys = g_list_sort(keys, (GCompareFunc)dfs_code_forward_compare);
+
+	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+
+		values = g_hash_table_lookup(pm_forwards, dfsc);
+
+		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
+		mine_subgraph(gs, values);
+		l2 = g_list_remove_link(gs->dfs_codes, g_list_last(gs->dfs_codes));
+		free((struct dfs_code *)l2->data);
+		g_list_free(l2);
+		g_list_free(values);
+		values = NULL;
+	}
+
+	g_list_free(keys);
+	cleanup_map(pm_backwards);
+	cleanup_map(pm_forwards);
+	g_list_free(right_most_path);
+
+	return;
+}

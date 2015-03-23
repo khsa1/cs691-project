@@ -105,7 +105,9 @@ static inline int dfs_code_forward_compare(const struct dfs_code *a,
 }
 
 
-GList *find_frequent_node_labels(GList *database, int nsupport);
+GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map);
 int prune_infrequent_nodes(GList *database, GList *frequent_labels);
+int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels);
+
 
 

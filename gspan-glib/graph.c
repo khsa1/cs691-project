@@ -177,6 +177,17 @@ void print_graph(struct graph *g, int support)
 	g_list_free(edges);
 	printf("\n");
 
+	_graph_count ++;
+	return;
+}
+
+void print_graph_node(int nodelabel, int support)
+{
+	printf("t # %d * %d\n", _graph_count, support);
+	printf("v 0 %d\n", nodelabel);
+	printf("\n");
+	_graph_count ++;
+
 	return;
 }
 

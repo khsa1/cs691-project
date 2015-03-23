@@ -38,6 +38,8 @@ void graph_clear(struct graph *g);
 void graph_free(struct graph *g);
 void graph_free_cb(void *g);
 struct graph *build_graph_dfs(GList *dfs_codes);
+void print_graph(struct graph *g, int support);
+void print_graph_node(int nodelabel, int support);
 
 /* fileio.c */
 GList *read_graphs(const char *filename, GList *frequent);
