@@ -363,7 +363,7 @@ void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 				if (g_hash_table_contains(pm_forward, dfsc))
 					values = g_hash_table_lookup(
 							pm_forward, dfsc);
-				printf("%d ---\n", g_list_length(values));
+				//printf("%d ---\n", g_list_length(values));
 				values = g_list_append(values, npdfs);
 				g_hash_table_insert(pm_forward, dfsc, values);
 				values = NULL;
@@ -481,7 +481,7 @@ int is_min(struct gspan *gs)
 		return 1;
 	}
 
-	g_list_free_full(gs->min_dfs_codes, (GDestroyNotify)free);
+	g_list_free(gs->min_dfs_codes);
 	gs->min_dfs_codes = NULL;
 
 	if (gs->min_graph)
@@ -576,7 +576,7 @@ int is_min(struct gspan *gs)
 	ret = projection_min(gs, values);
 	
 	cleanup_map(projection_map);
-	g_list_free(values);
+	//g_list_free(values);
 	printf("ret = %d\n", ret);
 	return ret;
 }
@@ -1039,7 +1039,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 		values = g_hash_table_lookup(projection_map, dfsc);
 
 		if (g_list_length(values) < gs->nsupport) {
-			g_list_free(values);
+			//g_list_free(values);
 			continue;
 		}
 
@@ -1120,7 +1120,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
 		free((struct dfs_code *)l2->data);
 		g_list_free(l2);
-		g_list_free(values);
+		//g_list_free(values);
 		values = NULL;
 	}
 
@@ -1143,9 +1143,9 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
-		free((struct dfs_code *)l2->data);
+		//free((struct dfs_code *)l2->data);
 		g_list_free(l2);
-		g_list_free(values);
+		//g_list_free(values);
 		values = NULL;
 	}
 
