@@ -2,6 +2,7 @@
 #include <errno.h>
 
 #include <graph.h>
+#include <glib_compat.h>
 
 /* Return a GList of graphs */
 

@@ -6,6 +6,7 @@
 
 #include <glib.h>
 
+#include <glib_compat.h>
 #include <gspan.h>
 #include <graph.h>
 #include <history.h>
@@ -877,6 +878,7 @@ int projection_min(struct gspan *gs, GList *projection)
 
 				g_list_free(keys);
 				cleanup_map(pm_backwards);
+				cleanup_map(pm_forwards);
 				g_list_free(right_most_path);
 				return 0;
 			}
@@ -910,6 +912,7 @@ int projection_min(struct gspan *gs, GList *projection)
 
 				g_list_free(keys);
 				cleanup_map(pm_forwards);
+				cleanup_map(pm_backwards);
 				g_list_free(right_most_path);
 				return 0;
 			}
@@ -1064,7 +1067,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
-		free((struct dfs_code *)l2->data);
+		//free((struct dfs_code *)l2->data);
 		g_list_free(l2);
 	}
 
@@ -1118,7 +1121,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
-		free((struct dfs_code *)l2->data);
+		//free((struct dfs_code *)l2->data);
 		g_list_free(l2);
 		//g_list_free(values);
 		values = NULL;

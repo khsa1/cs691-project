@@ -29,6 +29,7 @@ void free_history(struct history *h)
 	g_hash_table_destroy(h->has_edges);
 	g_hash_table_destroy(h->has_nodes);
 	g_list_free(h->edges);
+	free(h);
 }
 
 int build_history(struct history *h, struct pre_dfs *pdfs)

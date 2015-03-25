@@ -56,7 +56,7 @@ static inline int dfs_code_project_compare(const struct dfs_code *a,
 	if (a->to_label != b->to_label) {
 		if (a->to_label < b->to_label)
 			return -1;
-		return -1;
+		return 1;
 	}
 
 	return 0;
