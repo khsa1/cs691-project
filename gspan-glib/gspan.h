@@ -85,8 +85,8 @@ static inline int dfs_code_forward_compare(const struct dfs_code *a,
 {
 	if (a->from != b->from) {
 		if (a->from > b->from)
-			return 1;
-		return -1;
+			return -1;
+		return 1;
 	}
 
 	if (a->edge_label != b->edge_label) {

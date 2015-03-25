@@ -11,6 +11,15 @@ void clean_database(GList *database)
 	g_list_free_full(database, (GDestroyNotify)graph_free_cb);
 }
 
+int compare_int(const void *a, const void *b)
+{
+	if (a > b)
+		return 1;
+	if (a < b)
+		return -1;
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	struct gspan gs;
@@ -44,6 +53,7 @@ int main(int argc, char **argv)
 	printf("Database contains %d graphs\n", g_list_length(gs.database));
 
 	//print_graph((struct graph *)g_list_first(gs.database)->data, -1);
+	frequent = g_list_sort(frequent, (GCompareFunc)compare_int);
 
 	project(&gs, frequent, map);
 	g_hash_table_destroy(map);

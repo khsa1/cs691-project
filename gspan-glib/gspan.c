@@ -696,7 +696,7 @@ int judge_forwards(struct gspan *gs, GList *right_most_path, GList *projection,
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 
-	for(i=0,l1 = g_list_first(projection); l1; l1 = g_list_next(l1)) {
+	for(i=0,l1 = g_list_first(projection); l1; i++,l1 = g_list_next(l1)) {
 		struct pre_dfs *p = (struct pre_dfs *)l1->data;
 		struct node *last_node;
 		struct edge *last_edge;
@@ -763,7 +763,7 @@ int judge_forwards(struct gspan *gs, GList *right_most_path, GList *projection,
 							l1 = g_list_next(l1)) {
 			int rmp = GPOINTER_TO_INT(l1->data);
 			
-			for (l2=g_list_first(l2); l2; l2 = g_list_next(l2)) {
+			for (l2=g_list_first(projection); l2; l2 = g_list_next(l2)) {
 				struct pre_dfs *p = (struct pre_dfs *)l2->data;
 				struct edge *cur_edge;
 				struct node *cur_node;
@@ -863,9 +863,12 @@ int projection_min(struct gspan *gs, GList *projection)
 	pm_forwards = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
 
 	ret = judge_backwards(gs, right_most_path, projection, pm_backwards);
+	printf("jb %d ", ret);
 	if (ret) {
 		keys = g_hash_table_get_keys(pm_backwards);
 		keys = g_list_sort(keys, (GCompareFunc)dfs_code_backward_compare);
+		print_dfs_list(keys);
+		printf("\n");
 		for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
 			struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 
@@ -893,13 +896,18 @@ int projection_min(struct gspan *gs, GList *projection)
 			return ret;
 		}
 		g_list_free(keys);
-	}
+	} else
+		printf("\n");
 	
 	ret = judge_forwards(gs, right_most_path, projection, 
 						pm_forwards, min_label);
+	printf("jf %d", ret);
 	if (ret) {
 		keys = g_hash_table_get_keys(pm_forwards);
 		keys = g_list_sort(keys, (GCompareFunc)dfs_code_forward_compare);
+
+		print_dfs_list(keys);
+		printf("\n");
 		for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
 			struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 
@@ -927,7 +935,8 @@ int projection_min(struct gspan *gs, GList *projection)
 			return ret;
 		}
 		g_list_free(keys);
-	}
+	} else
+		printf("\n");
 
 	g_list_free(right_most_path);
 	cleanup_map(pm_backwards);
@@ -1131,7 +1140,13 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 	keys = g_hash_table_get_keys(pm_forwards);
 	keys = g_list_sort(keys, (GCompareFunc)dfs_code_forward_compare);
+	printf("FORWARD ==== ");
+	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 
+		print_dfs(dfsc);
+	}
+	printf("\n");
 	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		printf("forward  ");
