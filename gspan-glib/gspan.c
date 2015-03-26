@@ -174,7 +174,7 @@ void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 	last_node = graph_get_node(g, last_edge->to);
 
 	for (i=g_list_length(right_most_path)-1,l1=g_list_last(right_most_path);
-					i > 1; i--, l1 = g_list_previous(l1)) {
+					i > 0; i--, l1 = g_list_previous(l1)) {
 		int rmp = GPOINTER_TO_INT(l1->data);
 		struct edge *edge = g_list_nth_data(hist->edges, rmp);
 		struct node *from_node;
@@ -185,21 +185,26 @@ void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 			struct edge *e = (struct edge *)l2->data;
 
 			if (g_hash_table_contains(hist->has_edges, 
-							GINT_TO_POINTER(e->id)))
+							GINT_TO_POINTER(e->id))) {
+				//printf("here4 -- contains\n");
 				continue;
+			}
 
 			if (!g_hash_table_contains(hist->has_nodes, 
-							GINT_TO_POINTER(e->to)))
+							GINT_TO_POINTER(e->to))) {
+				//printf("here4 -- not\n");
 				continue;
+			}
 
 			from_node = graph_get_node(g, edge->from);
 			to_node = graph_get_node(g, edge->to);
-
+			//printf("here3\n");
 			if (e->to == edge->from && (e->label > edge->label || 
 					(e->label == edge->label && 
 					last_node->label >= to_node->label))) {
 
 				struct dfs_code *dfsc;
+				//printf("here4\n");
 				dfsc = malloc(sizeof(struct dfs_code));
 				if (!dfsc) {
 					perror("malloc dfsc in get_backwards");
@@ -378,7 +383,7 @@ void enumerate(struct gspan *gs, GList *projections, GList *right_most_path,
 			int min_label)
 {
 	GList *l;
-
+	printf("ml = %d\n", min_label);
 	for (l = g_list_first(projections); l; l = g_list_next(l)) {
 		struct pre_dfs *p = (struct pre_dfs *)l->data;
 		struct history *h;
@@ -476,9 +481,9 @@ int is_min(struct gspan *gs)
 	struct dfs_code *first_key, *start_code;
 	int ret;
 
-	printf("g_list_length(dfs_codes) = %d\n", g_list_length(gs->dfs_codes));
+	//printf("g_list_length(dfs_codes) = %d\n", g_list_length(gs->dfs_codes));
 	if (g_list_length(gs->dfs_codes) == 1) {
-		printf("heremin1\n");
+	//	printf("heremin1\n");
 		return 1;
 	}
 
@@ -487,7 +492,7 @@ int is_min(struct gspan *gs)
 
 	if (gs->min_graph)
 		graph_free(gs->min_graph);
-	print_dfs_list(gs->dfs_codes);
+	//print_dfs_list(gs->dfs_codes);
 	gs->min_graph = build_graph_dfs(gs->dfs_codes);
 
 	projection_map = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
@@ -560,16 +565,16 @@ int is_min(struct gspan *gs)
 	start_code->to_label = first_key->to_label;
 
 	gs->min_dfs_codes = g_list_append(gs->min_dfs_codes, start_code);
-	print_dfs(g_list_nth_data(gs->dfs_codes, 
-					g_list_length(gs->min_dfs_codes)-1));
-	printf("\n");
-	print_dfs(g_list_last(gs->min_dfs_codes)->data);
-	printf("\n");
+	//print_dfs(g_list_nth_data(gs->dfs_codes, 
+	//				g_list_length(gs->min_dfs_codes)-1));
+	//printf("\n");
+	//print_dfs(g_list_last(gs->min_dfs_codes)->data);
+	//printf("\n");
 	if (!dfs_code_equal(
 				g_list_nth_data(gs->dfs_codes, 
 					g_list_length(gs->min_dfs_codes)-1), 
 				g_list_last(gs->min_dfs_codes)->data)) {
-		printf("heremin2\n");
+		//printf("heremin2\n");
 		return 0;
 	}
 	
@@ -578,7 +583,7 @@ int is_min(struct gspan *gs)
 	
 	cleanup_map(projection_map);
 	//g_list_free(values);
-	printf("ret = %d\n", ret);
+	//printf("ret = %d\n", ret);
 	return ret;
 }
 
@@ -592,7 +597,7 @@ int judge_backwards(struct gspan *gs, GList *right_most_path, GList *projection,
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 
 	for (i=g_list_length(right_most_path)-1,l1=g_list_last(right_most_path);
-					i > 1; i--, l1 = g_list_previous(l1)) {
+					i > 0; i--, l1 = g_list_previous(l1)) {
 		int rmp = GPOINTER_TO_INT(l1->data);
 
 		for(l2 = g_list_first(projection); l2; l2 = g_list_next(l2)) {
@@ -690,13 +695,13 @@ int judge_backwards(struct gspan *gs, GList *right_most_path, GList *projection,
 int judge_forwards(struct gspan *gs, GList *right_most_path, GList *projection,
 					GHashTable *pm_forwards, int min_label)
 {
-	int i, rmp0;
+	int rmp0;
 	struct history *h;
 	GList *l1, *l2, *l3, *l4, *values = NULL;
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 
-	for(i=0,l1 = g_list_first(projection); l1; i++,l1 = g_list_next(l1)) {
+	for(l1 = g_list_first(projection); l1; l1 = g_list_next(l1)) {
 		struct pre_dfs *p = (struct pre_dfs *)l1->data;
 		struct node *last_node;
 		struct edge *last_edge;
@@ -896,8 +901,7 @@ int projection_min(struct gspan *gs, GList *projection)
 			return ret;
 		}
 		g_list_free(keys);
-	} else
-		printf("\n");
+	} else {printf("\n");}
 	
 	ret = judge_forwards(gs, right_most_path, projection, 
 						pm_forwards, min_label);
@@ -935,8 +939,7 @@ int projection_min(struct gspan *gs, GList *projection)
 			return ret;
 		}
 		g_list_free(keys);
-	} else
-		printf("\n");
+	} else { printf("\n"); }
 
 	g_list_free(right_most_path);
 	cleanup_map(pm_backwards);
@@ -1094,12 +1097,12 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 	support = count_support(projection);
 	if (support < gs->nsupport) {
-		printf("here1\n");
+		//printf("here1\n");
 		return;
 	}
 
 	if (!is_min(gs)) {
-		printf("here2\n");
+		//printf("here2\n");
 		return;
 	}
 
@@ -1116,6 +1119,13 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 	keys = g_hash_table_get_keys(pm_backwards);
 	keys = g_list_sort(keys, (GCompareFunc)dfs_code_backward_compare);
+	//printf("BACKWARD ==== ");
+	//for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
+	//	struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+
+	//	print_dfs(dfsc);
+	//}
+	//printf("\n");
 
 	for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
@@ -1140,13 +1150,13 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 	keys = g_hash_table_get_keys(pm_forwards);
 	keys = g_list_sort(keys, (GCompareFunc)dfs_code_forward_compare);
-	printf("FORWARD ==== ");
-	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
-		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+	//printf("FORWARD ==== ");
+	//for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+	//	struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 
-		print_dfs(dfsc);
-	}
-	printf("\n");
+	//	print_dfs(dfsc);
+	//}
+	//printf("\n");
 	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		printf("forward  ");
