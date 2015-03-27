@@ -4,8 +4,10 @@
 #include <graph.h>
 #include <glib_compat.h>
 
-/* Return a GList of graphs */
-
+/* 
+ * Return a GList of graphs, ignoring nodes and edges that are not in 
+ * frequent if frequent is not NULL
+ */
 GList *read_graphs(const char *filename, GList *frequent)
 {
 	char line[1024];
@@ -29,7 +31,6 @@ GList *read_graphs(const char *filename, GList *frequent)
 	count = 0;
 	node_id = 0;
 	
-
 	while (fgets(line, 1023, fp) != NULL) {
 
 		if (line[0] == 't') {
@@ -52,7 +53,7 @@ GList *read_graphs(const char *filename, GList *frequent)
 			labels = g_list_append(labels, GINT_TO_POINTER(label));
 			if (frequent) {
 				if (!g_list_find(frequent, 
-							GINT_TO_POINTER(label)))
+						GINT_TO_POINTER(label)))
 					continue;
 			}
 			n = node_new(0,0,NULL);
@@ -73,7 +74,6 @@ GList *read_graphs(const char *filename, GList *frequent)
 			label_from = GPOINTER_TO_INT(
 						g_list_nth_data(labels, from));
 			label_to = GPOINTER_TO_INT(g_list_nth_data(labels, to));
-			//printf("%d %d\n", label_from, label_to);
 			if (frequent) {
 				if (!g_list_find(frequent, 
 						GINT_TO_POINTER(label_from)) ||
@@ -87,7 +87,6 @@ GList *read_graphs(const char *filename, GList *frequent)
 			g->nedges ++;
 			e->from = GPOINTER_TO_INT(g_hash_table_lookup(id_map, GINT_TO_POINTER(from)));
 			e->to = GPOINTER_TO_INT(g_hash_table_lookup(id_map, GINT_TO_POINTER(to)));
-			//printf("-- %d %d\n", e->from, e->to);
 			e->label = label;
 			pn = graph_get_node(g, e->from);
 			pn->edges = g_list_append(pn->edges, e);

@@ -2,6 +2,7 @@
 #include <float.h>
 
 #include <glib.h>
+#include <glib_compat.h>
 
 #include <graph.h>
 

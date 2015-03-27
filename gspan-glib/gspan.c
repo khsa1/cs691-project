@@ -69,8 +69,6 @@ GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map)
 	/* Create a list of the labels that are above the nsupport value */
 	g_hash_table_iter_init(&iter, map);
 	while (g_hash_table_iter_next(&iter, (void **)&key, (void **)&value)) {
-		//printf("%d %d %d ",nsupport,GPOINTER_TO_INT(key),
-		//			GPOINTER_TO_INT(value));
 		if (GPOINTER_TO_INT(value) < nsupport)
 			continue;
 		ret = g_list_append(ret, key);

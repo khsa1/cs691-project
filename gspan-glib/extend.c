@@ -14,6 +14,7 @@
 #include <graph.h>
 #include <gspan.h>
 #include <history.h>
+#include <glib_compat.h>
 
 GList *get_forward_init(struct node *n, struct graph *g)
 {
