@@ -1,3 +1,11 @@
+/* 
+ * gspan.h: Core structs and inline functions for the gspan algorithm
+ *
+ * Author: John Clemens <clemej1 at umbc.edu>
+ * Copyrigt (c) 2015
+ */
+
+
 #include <stdint.h>
 #include <float.h>
 
@@ -5,6 +13,9 @@
 #include <glib_compat.h>
 
 #include <graph.h>
+
+#ifndef __GSPAN_H__
+#define __GSPAN_H__
 
 struct dfs_code {
 	uint8_t from;
@@ -39,6 +50,11 @@ static inline int dfs_code_equal(const struct dfs_code *a,
 				(a->to_label == b->to_label);
 }
 
+/* 
+ * Comparison functions that order struct dfs_codes when sorting the
+ * keys.  This ordering is VERY IMPORTANT for the algorithms. 
+ * Return -1, 0, or 1 if a is less than, equal to, or greater than b
+ */
 static inline int dfs_code_project_compare(const struct dfs_code *a, 
 						const struct dfs_code *b) 
 {
@@ -105,6 +121,7 @@ static inline int dfs_code_forward_compare(const struct dfs_code *a,
 	return 0;
 }
 
+/* Print out a struct dfs_code */
 static inline void print_dfs(struct dfs_code *dfsc)
 {
 	printf("(from=%d, to=%d, from_label=%d, edge_label=%d, to_label=%d)", 
@@ -112,6 +129,7 @@ static inline void print_dfs(struct dfs_code *dfsc)
 			dfsc->edge_label, dfsc->to_label);
 }
 
+/* Print out a list of dfs_codes, one per line */
 static inline void print_dfs_list(GList *list)
 {
 	GList *l;
@@ -129,18 +147,20 @@ static inline void print_dfs_list(GList *list)
 	}
 }
 
+/* Utility function to print a pre_dfs struct */
 static inline void print_pre_dfs(struct pre_dfs *pdfs)
 {
 	printf("(id=%d, edge=(%d,%d,%d), prev=%p)", pdfs->id, pdfs->edge->from, 
 		pdfs->edge->to, pdfs->edge->label, pdfs->prev);
 }
 
+/* Utility function to print an edge */
 static inline void print_edge(struct edge *e)
 {
 	printf("(id=%d, from=%d, to=%d, labal=%d)",e->id, e->from, e->to, e->label);
 }
 
-
+/* A simple hash table function to hash dfs codes */
 static inline unsigned int dfs_code_hash(const void *key)
 {
 	struct dfs_code *dfsc = (struct dfs_code *)key;
@@ -156,6 +176,7 @@ static inline unsigned int dfs_code_hash(const void *key)
 	return ret;
 }
 
+/* GLib-formatted callback for comparing DFS codes */
 static inline gboolean glib_dfs_code_equal(const void *a, const void *b)
 {
 	if (dfs_code_equal((const struct dfs_code *)a, 
@@ -164,6 +185,7 @@ static inline gboolean glib_dfs_code_equal(const void *a, const void *b)
 	return FALSE;
 }
 
+/* De-allocate a map */
 static inline void cleanup_map(GHashTable *map)
 {
 	GList *lists, *l;
@@ -202,3 +224,4 @@ int is_min(struct gspan *gs);
 GList *build_right_most_path(GList *dfs_codes);
 GList *get_forward_init(struct node *n, struct graph *g);
 
+#endif /* __GSPAN_H__ */
