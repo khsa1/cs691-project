@@ -60,13 +60,13 @@ static void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 							l2 = g_list_next(l2)) {
 			struct edge *e = (struct edge *)l2->data;
 
-			if (g_hash_table_contains(hist->has_edges, 
+			if (g_list_find(hist->has_edges, 
 							GINT_TO_POINTER(e->id))) {
 				//printf("here4 -- contains\n");
 				continue;
 			}
 
-			if (!g_hash_table_contains(hist->has_nodes, 
+			if (!g_list_find(hist->has_nodes, 
 							GINT_TO_POINTER(e->to))) {
 				//printf("here4 -- not\n");
 				continue;
@@ -144,7 +144,7 @@ static void get_first_forward(struct gspan *gs, struct pre_dfs *pdfs,
 
 		to_node = graph_get_node(g, e->to);
 
-		if (g_hash_table_contains(hist->has_nodes, GINT_TO_POINTER(
+		if (g_list_find(hist->has_nodes, GINT_TO_POINTER(
 				e->to)) || to_node->label < min_label)
 			continue;
 
@@ -197,7 +197,7 @@ static void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 		struct edge *cur_edge;
 		struct node *cur_node, *cur_to;
 
-		cur_edge = g_list_nth_data(hist->edges, rmp0);
+		cur_edge = g_list_nth_data(hist->edges, rmp);
 		cur_node = graph_get_node(g, cur_edge->from);
 		cur_to = graph_get_node(g, cur_edge->to);
 
@@ -207,7 +207,7 @@ static void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 			struct node *to_node = graph_get_node(g, e->to);
 
 			if (to_node->id == cur_to->id || 
-					g_hash_table_contains(hist->has_nodes, 
+					g_list_find(hist->has_nodes, 
 					GINT_TO_POINTER(to_node->id)) || 
 						to_node->label < min_label) 
 				continue;
@@ -259,7 +259,7 @@ void enumerate(struct gspan *gs, GList *projections, GList *right_most_path,
 			int min_label)
 {
 	GList *l;
-	printf("ml = %d\n", min_label);
+
 	for (l = g_list_first(projections); l; l = g_list_next(l)) {
 		struct pre_dfs *p = (struct pre_dfs *)l->data;
 		struct history *h;

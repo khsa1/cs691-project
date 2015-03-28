@@ -152,6 +152,8 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	int min_label;
 	GHashTable *pm_forwards, *pm_backwards;
 
+	//printf("Entering mine_subgraph\n");
+
 	/* 
          * Exit condition, stop mining if subgraph not in enough graphs in the
          * DB. Appers to map to lines 11 and 12 in algorihm 1
@@ -159,6 +161,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	support = count_support(projection);
 	if (support < gs->nsupport) {
 		//printf("here1\n");
+		//printf("Exitint 1\n");
 		return;
 	}
 
@@ -167,6 +170,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
          * Line 6 of subproceedure 1.
          */
 	if (!is_min(gs)) {
+		//printf("Exiting 2\n");
 		//printf("here2\n");
 		return;
 	}
@@ -200,9 +204,11 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	/* This and the next for loop are line 5 in subproc 1 */
 	for (l1 = g_list_first(keys); l1; l1 = g_list_next(l1)) {
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+#ifdef DEBUG
 		printf("backward  ");
 		print_dfs(dfsc);
 		printf("\n");
+#endif
 		values = g_hash_table_lookup(pm_backwards, dfsc);
 
 		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
@@ -232,10 +238,11 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	/* Again, line 5. Note we iterate in reverse order */
 	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
+#ifdef DEBUG
 		printf("forward  ");
 		print_dfs(dfsc);
 		printf("\n");
-
+#endif
 		values = g_hash_table_lookup(pm_forwards, dfsc);
 
 		/* Line 7: subproc 1 */
@@ -255,6 +262,9 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	cleanup_map(pm_backwards);
 	cleanup_map(pm_forwards);
 	g_list_free(right_most_path);
+	
+	//printf("Exiting 3\n");
+
 
 	return;
 }
@@ -372,8 +382,10 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 			continue;
 		}
 
+#ifdef DEBUG
 		print_dfs(dfsc);
 		printf(" %d\n", g_list_length(values));
+#endif
 
 		/* Line 8 in algorithm, starts with the edge */
 		start_code = malloc(sizeof(struct dfs_code));

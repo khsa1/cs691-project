@@ -147,6 +147,25 @@ static inline void print_dfs_list(GList *list)
 	}
 }
 
+/* Utility function to print an edge */
+static inline void print_edge(struct edge *e)
+{
+	printf("(id=%d, from=%d, to=%d, labal=%d)",e->id, e->from, e->to, e->label);
+}
+
+static inline void print_id_list(GList *list)
+{
+	GList *l;
+	printf(" --- [");
+	for (l = g_list_first(list); l; l = g_list_next(l)) {
+		int e = GPOINTER_TO_INT(l->data);
+
+		printf("%d,",e);
+	}
+	printf("] --\n");
+}
+
+
 /* Utility function to print a pre_dfs struct */
 static inline void print_pre_dfs(struct pre_dfs *pdfs)
 {
@@ -154,11 +173,6 @@ static inline void print_pre_dfs(struct pre_dfs *pdfs)
 		pdfs->edge->to, pdfs->edge->label, pdfs->prev);
 }
 
-/* Utility function to print an edge */
-static inline void print_edge(struct edge *e)
-{
-	printf("(id=%d, from=%d, to=%d, labal=%d)",e->id, e->from, e->to, e->label);
-}
 
 /* A simple hash table function to hash dfs codes */
 static inline unsigned int dfs_code_hash(const void *key)
@@ -166,8 +180,8 @@ static inline unsigned int dfs_code_hash(const void *key)
 	struct dfs_code *dfsc = (struct dfs_code *)key;
 	unsigned int ret;
 
-	ret = 0 | (dfsc->from << 24) | (dfsc->to << 16) | 
-		(dfsc->from_label << 8) | (dfsc->edge_label << 0);
+	ret = 0 | (dfsc->from << 26) | (dfsc->to << 20) | 
+		(dfsc->from_label << 14) | (dfsc->edge_label << 8) | dfsc->to_label;
 
 	/* 
 	 * don't have enough bits on 32-bit to include to_label directly

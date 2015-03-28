@@ -2,8 +2,10 @@
 
 struct history {
 	GList *edges;
-	GHashTable *has_edges;
-	GHashTable *has_nodes;
+	GList *has_edges;
+	GList *has_nodes;
+	//GHashTable *has_edges;
+	//GHashTable *has_nodes;
 };
 
 struct history *alloc_history(void);
