@@ -54,7 +54,6 @@ int build_history(struct history *h, struct pre_dfs *pdfs)
 					GINT_TO_POINTER(p->edge->to));
 
 
-
 		//g_hash_table_add(h->has_edges, GINT_TO_POINTER(p->edge->id));
 		//g_hash_table_add(h->has_nodes, GINT_TO_POINTER(p->edge->from));
 		//g_hash_table_add(h->has_nodes, GINT_TO_POINTER(p->edge->to));
