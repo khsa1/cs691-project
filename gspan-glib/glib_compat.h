@@ -19,6 +19,13 @@ static inline void g_queue_free_full(GQueue *q, void (*f)(void *))
         g_queue_free(q);
 }
 
+#if (GLIB_MINOR_VERSION < 28)
+static inline void g_list_free_full(GList *l, void (*f)(void *))
+{
+	g_list_foreach(l, g_free_tramp, f);
+	g_list_free(l);
+}
+#endif
 
 static inline gboolean g_hash_table_add(GHashTable *hash_table, gpointer key)
 {
