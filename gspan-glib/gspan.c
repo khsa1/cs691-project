@@ -23,7 +23,7 @@
  * number of times the label occurs.  Return a list of labels that are mode
  * than the nsupport parameter.
  */
-GList *find_frequent_node_labels(GArray *database, int nsupport, GHashTable *map)
+GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map)
 {
 	int i, j, *key, *value;
 	GHashTableIter iter;
@@ -34,7 +34,7 @@ GList *find_frequent_node_labels(GArray *database, int nsupport, GHashTable *map
 	 * Iterate over all graphs in the database, and determine how
  	 * in how many graphs a given not label appears. 
  	 */
-	for (i = 0; i < database->len; i++) {
+	for (i = 0; i < g_list_length(database); i++) {
 		struct graph *g;
 		uint32_t *iter1;
 		int *labels;
@@ -42,7 +42,7 @@ GList *find_frequent_node_labels(GArray *database, int nsupport, GHashTable *map
 
 		GList *gset = NULL;
 
-		g = (struct graph *)g_array_index(database, struct graph *, i);
+		g = (struct graph *)g_list_nth_data(database, i);
 
 		/* Make a list of every unique label in the graph */
 		for (j = 0; j < g_list_length(g->nodes); j++) {
@@ -281,7 +281,6 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 	struct pre_dfs *pm;
 	struct dfs_code *first_key, *start_code;
 	int ret;
-	int i;
 
 	if (gs->dfs_codes != NULL)
 		g_list_free_full(gs->dfs_codes, (GDestroyNotify)free);
@@ -305,10 +304,9 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 	/* Find all frequent one-edges in the database. Line 4 */
 	projection_map = g_hash_table_new(dfs_code_hash, glib_dfs_code_equal);
 
-	//for(l1 = g_list_first(gs->database); l1; l1 = g_list_next(l1)) {
-	//	struct graph *g = (struct graph *)l1->data;
-	for (i=0; i < gs->database->len; i++) {
-		struct graph *g = g_array_index(gs->database, struct graph *, i);
+	for(l1 = g_list_first(gs->database); l1; l1 = g_list_next(l1)) {
+		struct graph *g = (struct graph *)l1->data;
+
 		for (l2 = g_list_first(g->nodes); l2; l2 = g_list_next(l2)) {
 			struct node *n = (struct node *)l2->data;
 			GList *edges;

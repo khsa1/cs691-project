@@ -32,7 +32,7 @@ struct pre_dfs {
 };
 
 struct gspan {
-	GArray *database;
+	GList *database;
 	double support;
 	uint32_t nsupport;
 	GList *subgraphs;
@@ -207,9 +207,9 @@ static inline void cleanup_map(GHashTable *map)
 	lists = g_hash_table_get_values(map);
 
 	for (l = g_list_first(lists); l; l = g_list_next(l)) {
-		GQueue *to_delete = (GQueue *)l->data;	
-		if (to_delete->length)
-			g_queue_free_full(to_delete, (GFreeFunc)free);
+		GQueue *to_delete = (GQueue *)l->data;
+
+		g_queue_free_full(to_delete, (GFreeFunc)free);
 	}
 	
 	g_list_free(lists);
@@ -231,8 +231,8 @@ static inline void cleanup_map(GHashTable *map)
 }
 
 
-GList *find_frequent_node_labels(GArray *database, int nsupport, GHashTable *map);
-int prune_infrequent_nodes(GArray *database, GList *frequent_labels);
+GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map);
+int prune_infrequent_nodes(GList *database, GList *frequent_labels);
 int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels);
 int is_min(struct gspan *gs);
 GList *build_right_most_path(GList *dfs_codes);

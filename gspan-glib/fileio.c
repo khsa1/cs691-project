@@ -8,11 +8,11 @@
  * Return a GList of graphs, ignoring nodes and edges that are not in 
  * frequent if frequent is not NULL
  */
-GArray *read_graphs(const char *filename, GList *frequent)
+GList *read_graphs(const char *filename, GList *frequent)
 {
 	char line[1024];
 	FILE *fp;
-	GArray *ret = NULL;
+	GList *ret = NULL;
 	struct graph *g = NULL;
 	struct node *n = NULL;
 	struct edge *e = NULL, *e2 = NULL;
@@ -20,8 +20,6 @@ GArray *read_graphs(const char *filename, GList *frequent)
 	GHashTable *id_map;
 	int node_id;
 	GList *labels = NULL;
-
-	ret = g_array_new(FALSE, TRUE, sizeof(struct graph *));
 
 	id_map = g_hash_table_new(g_direct_hash, NULL);
 
@@ -37,7 +35,7 @@ GArray *read_graphs(const char *filename, GList *frequent)
 
 		if (line[0] == 't') {
 			if (count > 0) {
-				ret = g_array_append_vals(ret, &g, 1);
+				ret = g_list_append(ret, g);
 				g_hash_table_remove_all(id_map);
 				g_list_free(labels);
 				labels = NULL;
@@ -105,7 +103,7 @@ GArray *read_graphs(const char *filename, GList *frequent)
 		}
 	}
 
-	ret = g_array_append_vals(ret, &g, 1);
+	ret = g_list_append(ret, g);
 	g_hash_table_destroy(id_map);
 	g_list_free(labels);
 

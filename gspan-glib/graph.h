@@ -42,6 +42,6 @@ void print_graph(struct graph *g, int support);
 void print_graph_node(int nodelabel, int support);
 
 /* fileio.c */
-GArray *read_graphs(const char *filename, GList *frequent);
+GList *read_graphs(const char *filename, GList *frequent);
 
 #endif /* __GRAPH_H__ */

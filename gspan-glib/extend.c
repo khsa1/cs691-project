@@ -47,7 +47,7 @@ static void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 	last_edge = g_list_nth_data(hist->edges, rmp0);
-	g = (struct graph *)g_array_index(gs->database, struct graph *, pdfs->id);// g_list_nth_data(gs->database, pdfs->id);
+	g = g_list_nth_data(gs->database, pdfs->id);
 	last_node = graph_get_node(g, last_edge->to);
 
 	for (i=g_list_length(right_most_path)-1,l1=g_list_last(right_most_path);
@@ -136,7 +136,7 @@ static void get_first_forward(struct gspan *gs, struct pre_dfs *pdfs,
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 	last_edge = g_list_nth_data(hist->edges, rmp0);
-	g = g_array_index(gs->database, struct graph *, pdfs->id);
+	g = g_list_nth_data(gs->database, pdfs->id);
 	last_node = graph_get_node(g, last_edge->to);
 
 	for (l1 = g_list_first(last_node->edges); l1; l1 = g_list_next(l1)) {
@@ -197,7 +197,7 @@ static void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 	GQueue *values = NULL;
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
-	g = g_array_index(gs->database, struct graph *, pdfs->id);
+	g = g_list_nth_data(gs->database, pdfs->id);
 	
 	for (l1 = g_list_first(right_most_path); l1; l1 = g_list_next(l1)) {
 		int rmp = GPOINTER_TO_INT(l1->data);
