@@ -5,6 +5,21 @@
 
 #if (GLIB_MINOR_VERSION < 32)
 
+static void g_free_tramp(void *d, void *u)
+{
+        void (*func)(void *) = u;
+
+        func(d);
+        return;
+}
+
+static inline void g_queue_free_full(GQueue *q, void (*f)(void *))
+{
+        g_queue_foreach(q, g_free_tramp, f);
+        g_queue_free(q);
+}
+
+
 static inline gboolean g_hash_table_add(GHashTable *hash_table, gpointer key)
 {
 	g_hash_table_replace(hash_table, key, key);
