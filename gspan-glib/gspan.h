@@ -207,9 +207,9 @@ static inline void cleanup_map(GHashTable *map)
 	lists = g_hash_table_get_values(map);
 
 	for (l = g_list_first(lists); l; l = g_list_next(l)) {
-		GQueue *to_delete = (GQueue *)l->data;
+		GList *to_delete = (GList *)l->data;
 
-		g_queue_free_full(to_delete, (GFreeFunc)free);
+		g_list_free_full(to_delete, (GFreeFunc)free);
 	}
 	
 	g_list_free(lists);

@@ -111,13 +111,13 @@ GList *build_right_most_path(GList *dfs_codes)
 /*
  * Return how many times the subgraph shows up in the DB? 
  */
-static int count_support(GQueue *pdfs)
+static int count_support(GList *pdfs)
 {
 	GList *l;
 	int size = 0;
 	int prev_id = -1;
 	
-	for (l = g_list_first(pdfs->head); l; l = g_list_next(l)) {
+	for (l = g_list_first(pdfs); l; l = g_list_next(l)) {
 		struct pre_dfs *p = (struct pre_dfs *)l->data;
 
 		if (prev_id != p->id) {
@@ -145,11 +145,10 @@ static void show_subgraph(GList *dfs_codes, int nsupport)
 /* 
  * Main recursive mining function, Subproceedure 1 in the paper
  */
-void mine_subgraph(struct gspan *gs, GQueue *projection)
+void mine_subgraph(struct gspan *gs, GList *projection)
 {
 	int support;
-	GList *right_most_path, *keys, *l1, *l2;
-	GQueue *values = NULL;
+	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
 	int min_label;
 	GHashTable *pm_forwards, *pm_backwards;
 
@@ -276,8 +275,7 @@ void mine_subgraph(struct gspan *gs, GQueue *projection)
 int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 {
 	GHashTable *projection_map;
-	GList *l1, *l2, *l3, *edges, *keys;
-	GQueue *values;
+	GList *l1, *l2, *l3, *edges, *values=NULL, *keys;
 	struct pre_dfs *pm;
 	struct dfs_code *first_key, *start_code;
 	int ret;
@@ -355,11 +353,11 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 					//printf("Here1\n");
 					values = g_hash_table_lookup(
 							projection_map, dfsc);
-				} else
-					values = g_queue_new();
-				g_queue_push_tail(values, npdfs);
+				}
+				values = g_list_append(values, npdfs);
 				g_hash_table_insert(projection_map, dfsc, 
 									values);
+				values = NULL;
 			}
 
 			g_list_free(edges);
@@ -379,7 +377,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 		values = g_hash_table_lookup(projection_map, dfsc);
 
 		/* Lines 11-12 in the algorithm. Exit condition */
-		if (g_queue_get_length(values) < gs->nsupport) {
+		if (g_list_length(values) < gs->nsupport) {
 			//g_list_free(values);
 			continue;
 		}

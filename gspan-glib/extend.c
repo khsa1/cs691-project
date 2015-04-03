@@ -42,8 +42,7 @@ static void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 	struct node *last_node;
 	int rmp0;
 	int i;
-	GList *l1, *l2;
-	GQueue *values = NULL;
+	GList *l1, *l2, *values = NULL;
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 	last_edge = g_list_nth_data(hist->edges, rmp0);
@@ -110,11 +109,9 @@ static void get_backward(struct gspan *gs, struct pre_dfs *pdfs,
 				if (g_hash_table_contains(pm_backward, dfsc))
 					values = g_hash_table_lookup(
 							pm_backward, dfsc);
-				else
-					values = g_queue_new();
-
-				g_queue_push_tail(values, npdfs);
+				values = g_list_append(values, npdfs);
 				g_hash_table_insert(pm_backward, dfsc, values);
+				values = NULL;
 			}
 		}
 	}
@@ -131,8 +128,7 @@ static void get_first_forward(struct gspan *gs, struct pre_dfs *pdfs,
 	struct node *last_node;
 	int rmp0;
 	int i;
-	GList *l1;
-	GQueue *values = NULL;
+	GList *l1, *values = NULL;
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 	last_edge = g_list_nth_data(hist->edges, rmp0);
@@ -176,11 +172,9 @@ static void get_first_forward(struct gspan *gs, struct pre_dfs *pdfs,
 
 		if (g_hash_table_contains(pm_forward, dfsc))
 			values = g_hash_table_lookup(pm_forward, dfsc);
-		else
-			values = g_queue_new();
-
-		g_queue_push_tail(values, npdfs);
+		values = g_list_append(values, npdfs);
 		g_hash_table_insert(pm_forward, dfsc, values);
+		values = NULL;
 	}
 
 	return;
@@ -193,8 +187,7 @@ static void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 {
 	struct graph *g;
 	int rmp0;
-	GList *l1, *l2, *l3;
-	GQueue *values = NULL;
+	GList *l1, *l2, *l3, *values = NULL;
 
 	rmp0 = 	GPOINTER_TO_INT(g_list_nth_data(right_most_path, 0));
 	g = g_list_nth_data(gs->database, pdfs->id);
@@ -252,24 +245,22 @@ static void get_other_forward(struct gspan *gs, struct pre_dfs *pdfs,
 				if (g_hash_table_contains(pm_forward, dfsc))
 					values = g_hash_table_lookup(
 							pm_forward, dfsc);
-				else
-					values = g_queue_new();
-
 				//printf("%d ---\n", g_list_length(values));
-				g_queue_push_tail(values, npdfs);
+				values = g_list_append(values, npdfs);
 				g_hash_table_insert(pm_forward, dfsc, values);
+				values = NULL;
 			}
 		}
 	}
 }
 
-void enumerate(struct gspan *gs, GQueue *projections, GList *right_most_path,
+void enumerate(struct gspan *gs, GList *projections, GList *right_most_path,
 			GHashTable *pm_backward, GHashTable *pm_forward, 
 			int min_label)
 {
 	GList *l;
 
-	for (l = g_list_first(projections->head); l; l = g_list_next(l)) {
+	for (l = g_list_first(projections); l; l = g_list_next(l)) {
 		struct pre_dfs *p = (struct pre_dfs *)l->data;
 		struct history *h;
 
