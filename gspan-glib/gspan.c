@@ -131,12 +131,12 @@ static int count_support(GList *pdfs)
 /*
  * Print the subgraph
  */
-static void show_subgraph(GList *dfs_codes, int nsupport)
+static void show_subgraph(GList *dfs_codes, int nsupport, int id)
 {
 	struct graph *g;
 	
 	g = build_graph_dfs(dfs_codes);
-	print_graph(g, nsupport);
+	/*if(id==0)*/ print_graph(g, nsupport);
 	graph_free(g);
 
 	return;
@@ -145,7 +145,7 @@ static void show_subgraph(GList *dfs_codes, int nsupport)
 /* 
  * Main recursive mining function, Subproceedure 1 in the paper
  */
-void mine_subgraph(struct gspan *gs, GList *projection)
+void mine_subgraph(struct gspan *gs, GList *projection, int id)
 {
 	int support;
 	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
@@ -176,7 +176,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 	}
 
 	/* This is a minimum sunbgraph, so print it. Line 3 in subproc1 */
-	show_subgraph(gs->dfs_codes, support);
+	show_subgraph(gs->dfs_codes, support, id);
 
 	/* 
 	 * Try to expand the subgraph and count its children, 
@@ -213,7 +213,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 
 		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
 		/* Extend and then recurse, lines 7 and 8 in subproc 1 */
-		mine_subgraph(gs, values);
+		mine_subgraph(gs, values, id);
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
@@ -248,7 +248,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 		/* Line 7: subproc 1 */
 		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
 		/* Line 8, subproc 1 */
-		mine_subgraph(gs, values);
+		mine_subgraph(gs, values, id);
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
@@ -272,7 +272,7 @@ void mine_subgraph(struct gspan *gs, GList *projection)
 /* 
  * Main entry point for subgeaph mining. Algorithm 1 in the paper 
  */
-int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
+int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, int id, int np)
 {
 	GHashTable *projection_map;
 	GList *l1, *l2, *l3, *edges, *values=NULL, *keys;
@@ -296,7 +296,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 				g_hash_table_lookup(freq_labels, 
 					GINT_TO_POINTER(nodelabel)));
 
-		print_graph_node(nodelabel, nodesup);
+		/*if(id==0)*/ print_graph_node(nodelabel, nodesup);
 	}
 
 	/* Find all frequent one-edges in the database. Line 4 */
@@ -370,7 +370,13 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 	keys = g_list_sort(keys, (GCompareFunc)dfs_code_project_compare);
 
 	/* for each node in lexical order, line 7 in algorithm */
-	for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+	//for (l1 = g_list_last(keys); l1; l1 = g_list_previous(l1)) {
+	int my_first, my_last, total, ind;
+	total = g_list_length(keys);
+	my_first = (total/np)*id + ((id < (total%np)) ? id : (total%np));
+	my_last  = (total/np)*(id+1) + ((id < (total%np)) ? (id+1) : (total%np));
+	for (ind = my_first; ind < my_last; ind++) {
+		l1 = g_list_nth_data(keys,ind);
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		struct dfs_code *start_code; 
 
@@ -405,7 +411,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels)
 		 * Line 9 in algorithm, begin the recursive search extensions to
 		 * the edge
 		 */	
-		mine_subgraph(gs, values);
+		mine_subgraph(gs, values, id);
 
 		/* Line 10, pop the edge from the stack */
 		l2 = g_list_last(gs->dfs_codes);

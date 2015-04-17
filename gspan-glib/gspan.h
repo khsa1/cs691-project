@@ -13,6 +13,7 @@
 #include <glib_compat.h>
 
 #include <graph.h>
+#include <mpi.h>
 
 #ifndef __GSPAN_H__
 #define __GSPAN_H__
@@ -233,7 +234,7 @@ static inline void cleanup_map(GHashTable *map)
 
 GList *find_frequent_node_labels(GList *database, int nsupport, GHashTable *map);
 int prune_infrequent_nodes(GList *database, GList *frequent_labels);
-int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels);
+int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, int id,int np);
 int is_min(struct gspan *gs);
 GList *build_right_most_path(GList *dfs_codes);
 GList *get_forward_init(struct node *n, struct graph *g);
