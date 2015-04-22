@@ -131,12 +131,12 @@ static int count_support(GList *pdfs)
 /*
  * Print the subgraph
  */
-static void show_subgraph(GList *dfs_codes, int nsupport, int id)
+static void show_subgraph(GList *dfs_codes, int nsupport)
 {
 	struct graph *g;
 	
 	g = build_graph_dfs(dfs_codes);
-	/*if(id==0)*/ print_graph(g, nsupport);
+	print_graph(g, nsupport);
 	graph_free(g);
 
 	return;
@@ -145,12 +145,13 @@ static void show_subgraph(GList *dfs_codes, int nsupport, int id)
 /* 
  * Main recursive mining function, Subproceedure 1 in the paper
  */
-void mine_subgraph(struct gspan *gs, GList *projection, int id)
+void mine_subgraph(struct gspan *gs, GList *projection, GList *sub_graphs)
 {
 	int support;
 	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
 	int min_label;
 	GHashTable *pm_forwards, *pm_backwards;
+	struct subgraph *sub_graph;
 
 	//printf("Entering mine_subgraph\n");
 
@@ -176,7 +177,10 @@ void mine_subgraph(struct gspan *gs, GList *projection, int id)
 	}
 
 	/* This is a minimum sunbgraph, so print it. Line 3 in subproc1 */
-	show_subgraph(gs->dfs_codes, support, id);
+	//show_subgraph(gs->dfs_codes, support);
+	sub_graph->dfs_codes=gs->dfs_codes;
+	sub_graph->support = support;
+	sub_graphs = g_list_append(sub_graphs, sub_graph);
 
 	/* 
 	 * Try to expand the subgraph and count its children, 
@@ -213,7 +217,7 @@ void mine_subgraph(struct gspan *gs, GList *projection, int id)
 
 		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
 		/* Extend and then recurse, lines 7 and 8 in subproc 1 */
-		mine_subgraph(gs, values, id);
+		mine_subgraph(gs, values, sub_graphs);
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
@@ -248,7 +252,7 @@ void mine_subgraph(struct gspan *gs, GList *projection, int id)
 		/* Line 7: subproc 1 */
 		gs->dfs_codes = g_list_append(gs->dfs_codes, dfsc);
 		/* Line 8, subproc 1 */
-		mine_subgraph(gs, values, id);
+		mine_subgraph(gs, values, sub_graphs);
 
 		l2 = g_list_last(gs->dfs_codes);
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
@@ -279,10 +283,15 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	struct pre_dfs *pm;
 	struct dfs_code *first_key, *start_code;
 	int ret;
+	GList *sub_graphs;
+	struct subgraph *sg;
+	MPI_Status statuses[np];
 
 	if (gs->dfs_codes != NULL)
 		g_list_free_full(gs->dfs_codes, (GDestroyNotify)free);
 	gs->dfs_codes = NULL;
+
+	sub_graphs = NULL;
 
 	/* 
 	 * Print all 1-node graphs that are frequent graphs. Frequent node 
@@ -296,7 +305,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 				g_hash_table_lookup(freq_labels, 
 					GINT_TO_POINTER(nodelabel)));
 
-		/*if(id==0)*/ print_graph_node(nodelabel, nodesup);
+		if(id==0) print_graph_node(nodelabel, nodesup);
 	}
 
 	/* Find all frequent one-edges in the database. Line 4 */
@@ -376,7 +385,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	my_first = (total/np)*id + ((id < (total%np)) ? id : (total%np));
 	my_last  = (total/np)*(id+1) + ((id < (total%np)) ? (id+1) : (total%np));
 	for (ind = my_first; ind < my_last; ind++) {
-		l1 = g_list_nth_data(keys,ind);
+		l1 = g_list_nth(keys,ind);
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		struct dfs_code *start_code; 
 
@@ -411,7 +420,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 		 * Line 9 in algorithm, begin the recursive search extensions to
 		 * the edge
 		 */	
-		mine_subgraph(gs, values, id);
+		mine_subgraph(gs, values, sub_graphs);
 
 		/* Line 10, pop the edge from the stack */
 		l2 = g_list_last(gs->dfs_codes);
@@ -421,6 +430,39 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	}
 
 	cleanup_map(projection_map);
+
+/*
+	int array_of_blocklengths[2]={1,1};
+	MPI_Datatype array_of_types[2] = {GList, MPI_DOUBLE};
+	MPI_Datatype mpi_subgraph_type;
+	MPI_Aint array_of_displacements[2];
+        array_of_displacements[0] = offsetof(struct subgraph, dfs_codes);
+        array_of_displacements[1] = offsetof(struct subgraph, support);
+	MPI_Type_create_struct(2, array_of_blocklengths, array_of_displacements, array_of_types, &mpi_subgraph_type);
+	MPI_Type_commit(&mpi_subgraph_type);
+
+	if(id != 0)
+		MPI_Send(sub_graphs, 1, mpi_subgraph_type, 0, 0, MPI_COMM_WORLD);
+	if(id==0) {
+		show_subgraph(sub_graphs->dfs_codes, sub_graphs->support);
+		for(i = 1; i < np; i++) {
+			MPI_Recv(other_sub_graphs, 1, mpi_subgraph_type, i, 0, MPI_COMM_WORLD, statuses[i]);
+			show_subgraph(other_sub_graphs->dfs_codes, other_sub_graphs->support);
+		}
+	}
+*/
+
+	int curid;
+	for(curid=0; curid<np; curid++){
+		if(id==curid){
+			//printf("id=%d: length=%d\n", id, g_list_length(sub_graphs));
+			for(l1 = g_list_first(sub_graphs); l1; l1 = g_list_next(l1)){
+				sg = (struct subgraph*)l1->data;
+				show_subgraph(sg->dfs_codes, sg->support);
+				//printf("sg->support=%d\n", sg->support);
+			}
+		}
+	}
 
 	return 0;
 }
