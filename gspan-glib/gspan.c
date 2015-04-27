@@ -151,7 +151,7 @@ void mine_subgraph(struct gspan *gs, GList *projection, GList *sub_graphs)
 	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
 	int min_label;
 	GHashTable *pm_forwards, *pm_backwards;
-	struct subgraph *sub_graph;
+	struct subgraph sub_graph;
 
 	//printf("Entering mine_subgraph\n");
 
@@ -178,9 +178,9 @@ void mine_subgraph(struct gspan *gs, GList *projection, GList *sub_graphs)
 
 	/* This is a minimum sunbgraph, so print it. Line 3 in subproc1 */
 	//show_subgraph(gs->dfs_codes, support);
-	sub_graph->dfs_codes=gs->dfs_codes;
-	sub_graph->support = support;
-	sub_graphs = g_list_append(sub_graphs, sub_graph);
+	sub_graph.dfs_codes=gs->dfs_codes;
+	sub_graph.support = support;
+	sub_graphs = g_list_append(sub_graphs, &sub_graph);
 
 	/* 
 	 * Try to expand the subgraph and count its children, 
@@ -455,7 +455,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	int curid;
 	for(curid=0; curid<np; curid++){
 		if(id==curid){
-			//printf("id=%d: length=%d\n", id, g_list_length(sub_graphs));
+			printf("id=%d: length=%d\n", id, g_list_length(sub_graphs));
 			for(l1 = g_list_first(sub_graphs); l1; l1 = g_list_next(l1)){
 				sg = (struct subgraph*)l1->data;
 				show_subgraph(sg->dfs_codes, sg->support);
