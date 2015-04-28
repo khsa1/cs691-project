@@ -131,12 +131,12 @@ static int count_support(GList *pdfs)
 /*
  * Print the subgraph
  */
-static void show_subgraph(GList *dfs_codes, int nsupport)
+static void show_subgraph(GList *dfs_codes, int nsupport, int start)
 {
 	struct graph *g;
 	
 	g = build_graph_dfs(dfs_codes);
-	print_graph(g, nsupport);
+	print_graph(g, nsupport, start);
 	graph_free(g);
 
 	return;
@@ -298,7 +298,8 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	int ret;
 	GList *sub_graphs;
 	struct subgraph *sg;
-	MPI_Status statuses[np];
+	MPI_Status status;
+
 
 	if (gs->dfs_codes != NULL)
 		g_list_free_full(gs->dfs_codes, (GDestroyNotify)free);
@@ -312,6 +313,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	 * Line 1 was done in find_frequent_node_labels(), 
          * Lines 2-3 were done by read_graphs with the frequent label list.
 	 */
+        int onenode = 0;
 	for (l1 = g_list_first(frequent_nodes); l1; l1 = g_list_next(l1)) {
 		int nodelabel = GPOINTER_TO_INT(l1->data);
 		int nodesup = GPOINTER_TO_INT(
@@ -319,6 +321,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 					GINT_TO_POINTER(nodelabel)));
 
 		if(id==0) print_graph_node(nodelabel, nodesup);
+		onenode++;
 	}
 
 	/* Find all frequent one-edges in the database. Line 4 */
@@ -444,39 +447,32 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 
 	cleanup_map(projection_map);
 
-/*
-	int array_of_blocklengths[2]={1,1};
-	MPI_Datatype array_of_types[2] = {GList, MPI_DOUBLE};
-	MPI_Datatype mpi_subgraph_type;
-	MPI_Aint array_of_displacements[2];
-        array_of_displacements[0] = offsetof(struct subgraph, dfs_codes);
-        array_of_displacements[1] = offsetof(struct subgraph, support);
-	MPI_Type_create_struct(2, array_of_blocklengths, array_of_displacements, array_of_types, &mpi_subgraph_type);
-	MPI_Type_commit(&mpi_subgraph_type);
+	MPI_Barrier(MPI_COMM_WORLD);
+	double end = MPI_Wtime();
 
-	if(id != 0)
-		MPI_Send(sub_graphs, 1, mpi_subgraph_type, 0, 0, MPI_COMM_WORLD);
-	if(id==0) {
-		show_subgraph(sub_graphs->dfs_codes, sub_graphs->support);
-		for(i = 1; i < np; i++) {
-			MPI_Recv(other_sub_graphs, 1, mpi_subgraph_type, i, 0, MPI_COMM_WORLD, statuses[i]);
-			show_subgraph(other_sub_graphs->dfs_codes, other_sub_graphs->support);
-		}
+	int curid, recvbuf = 0, start = 0, i;
+	int sendbuf = g_list_length(sub_graphs);
+
+	for(i = 0; i < id; i++) {
+		MPI_Recv(&recvbuf, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
+		start += recvbuf;
 	}
-*/
 
-	int curid;
+	for(i = id; i < np; i++)
+		MPI_Send(&sendbuf, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+
+	if(id>0) start +=onenode;
+      
 	for(curid=0; curid<np; curid++){
 		if(id==curid){
-			printf("id=%d: length=%d\n", id, g_list_length(sub_graphs));
 			for(l1 = g_list_first(sub_graphs); l1; l1 = g_list_next(l1)){
 				sg = (struct subgraph*)l1->data;
-				show_subgraph(sg->dfs_codes, sg->support);
-				//printf("sg->support=%d\n", sg->support);
+				show_subgraph(sg->dfs_codes, sg->support,start);
 			}
 		}
 	}
 
-	return 0;
+
+	return end;
 }
 

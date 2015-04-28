@@ -134,15 +134,15 @@ void graph_clear(struct graph *g)
 	return;
 }
 
-void print_graph(struct graph *g, int support)
+void print_graph(struct graph *g, int support, int start)
 {
 	GList *l1, *l2, *l3;
 	GList *edges = NULL;
 
 	if (support > 0)
-		printf("t # %d * %d\n", _graph_count, support);
+		printf("t # %d * %d\n", _graph_count+start, support);
 	else
-		printf("t # %d\n", _graph_count);
+		printf("t # %d\n", _graph_count+start);
 
 	for (l1 = g_list_first(g->nodes); l1; l1 = g_list_next(l1)) {
 		struct node *n = (struct node *)l1->data;
