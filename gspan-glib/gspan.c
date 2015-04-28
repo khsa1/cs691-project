@@ -142,16 +142,27 @@ static void show_subgraph(GList *dfs_codes, int nsupport)
 	return;
 }
 
+static void *dfs_copy_func(const void *e, void *data)
+{
+	struct dfs_code *dfsc = (struct dfs_code *)e;
+	struct dfs_code *ret;
+
+	ret = malloc(sizeof(struct dfs_code));
+	memcpy(ret, dfsc, sizeof(struct dfs_code));
+
+	return ret;
+}
+
 /* 
  * Main recursive mining function, Subproceedure 1 in the paper
  */
-void mine_subgraph(struct gspan *gs, GList *projection, GList *sub_graphs)
+void mine_subgraph(struct gspan *gs, GList *projection, GList **sub_graphs)
 {
 	int support;
 	GList *right_most_path, *keys, *values = NULL, *l1, *l2;
 	int min_label;
 	GHashTable *pm_forwards, *pm_backwards;
-	struct subgraph sub_graph;
+	struct subgraph *sub_graph;
 
 	//printf("Entering mine_subgraph\n");
 
@@ -178,9 +189,11 @@ void mine_subgraph(struct gspan *gs, GList *projection, GList *sub_graphs)
 
 	/* This is a minimum sunbgraph, so print it. Line 3 in subproc1 */
 	//show_subgraph(gs->dfs_codes, support);
-	sub_graph.dfs_codes=gs->dfs_codes;
-	sub_graph.support = support;
-	sub_graphs = g_list_append(sub_graphs, &sub_graph);
+	sub_graph = malloc(sizeof(struct subgraph));
+	sub_graph->dfs_codes = g_list_copy_deep(gs->dfs_codes, dfs_copy_func,
+									 NULL);
+	sub_graph->support = support;
+	*sub_graphs = g_list_append(*sub_graphs, sub_graph);
 
 	/* 
 	 * Try to expand the subgraph and count its children, 
@@ -420,7 +433,7 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 		 * Line 9 in algorithm, begin the recursive search extensions to
 		 * the edge
 		 */	
-		mine_subgraph(gs, values, sub_graphs);
+		mine_subgraph(gs, values, &sub_graphs);
 
 		/* Line 10, pop the edge from the stack */
 		l2 = g_list_last(gs->dfs_codes);
