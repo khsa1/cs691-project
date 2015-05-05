@@ -1,0 +1,23 @@
+\section{Implementation}
+\label{sec:implementation}
+
+Our code implements the gSpan algorithm in C. We begin by reading in
+the graphs from the input file. The database of graphs is
+stored as a doubly-linked-list using the GLib GList structure.
+
+The nodes in the database are sorted by their frequency. The second input
+into our code is the minimum support. We prune all infrequent nodes and
+edges that do not satisfy this minimum support. The list of subgraphs is
+intially defined to be all frequent 1-edge graphs in the database. 
+
+This list of subgraphs is stored on each process. This list of 1-edge graphs
+is then evenly distribued among the processes. For each of these edges,
+subgraph mining is recursively called to grow the subgraphs in order to find
+all frequenct descendants. The search stops when the support is less than the
+minimum support or the subgraph and its descendants have already been
+discovered.
+
+After creating the local list of subgraphs. We iterate through each process,
+printing the id, support, vertices, and edges of each subgraph.
+Message passing is required to correctly compute the correct global 
+id of each subgraph.

@@ -1,0 +1,26 @@
+\section{Motivation}
+\label{sec:motivation}
+
+Frequent Subgraph Mining (FSM) is the general computational problem of 
+identifying what subgraphs occur frequently in a collection of graphs.  This 
+is an active area of research with wide applicability to fields such as 
+molecular biology, information retrieval, image classification, and many 
+others.  However, the problem is at its core a subgraph isomorphism problem
+which is proven to be NP-Complete\cite{cook1971complexity}.  This helps make
+the problem particularly well suited to large, supercomputer class systems.
+
+We intend to modify an existing frequent subgraph mining algorithm to exploit
+parallelism using the MPI framework. The hope is that the search space can
+be divided up among multiple nodes within a cluster to provide faster overall
+search times.  While attempts have been made to parallelize some FSM 
+algorithms in the past\cite{buehrer2005parallel,gspancuda}, these 
+approaches either use GPUs or limit themselves to shared memory machines. 
+To our knowledge this would be the first FSM system implemented with MPI.
+
+\subsection{Applications}
+\label{subsec:applications}
+
+\subsection{Complexity}
+\label{subsec:complexity}
+
+

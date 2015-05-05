@@ -1,0 +1,33 @@
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+
+\subsection{Comparison to other implementation}
+\label{subsec:comparison}
+
+\subsection{Conclusion}
+\label{subsec:conclusions}
+
+\subsection{Future Work}
+\label{subsec:future}
+
+Our current implementation is a pure MPI implementation. In the future we
+hope to develop a hybrid MPI-OpenMP implementation. This implementation
+would use a combination of MPI for inter-node communcation and OpenMP
+for intra-node, shared memory communcation.
+
+In our current implementation, the entire database is stored on each node.
+We are interested in developing a distributed structure for the database that
+would enable us to solve problems that require more memory than is available
+on a single node. Our database is currently store in a doubly-linked-list, so
+passing subgraphs between MPI processes is non-trivial. Since
+linked-lists are not stored in contiguous memory and the size of these
+linked-lists are not known, this would most likely require the use of arrays
+to pass data between MPI processes.
+
+Finally, we would be interested in a dynamic queueing mechanism to farm
+the work of child candidate graph generation out to parallel nodes. Since
+the subgraph mining subprocedure is recursive and we do not know how many
+calls are necessary for completion at the beginning of the algorithm it is
+possible that one process can take much longer than other processes to
+complete. A dynamic queueing mechanism would avoid this problem by giving work
+to idling processes.
