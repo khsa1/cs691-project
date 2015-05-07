@@ -400,10 +400,16 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	total = g_list_length(keys);
 	my_first = (total/np)*id + ((id < (total%np)) ? id : (total%np));
 	my_last  = (total/np)*(id+1) + ((id < (total%np)) ? (id+1) : (total%np));
+	printf("r%d: Edges %d-%d\n",id,my_first,my_last);
+	fflush(stdout);
 	for (ind = my_first; ind < my_last; ind++) {
+		double lstart, lend;
+		lstart = MPI_Wtime();
 		l1 = g_list_nth(keys,ind);
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		struct dfs_code *start_code; 
+
+		
 
 		values = g_hash_table_lookup(projection_map, dfsc);
 
@@ -443,6 +449,10 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
 		//free((struct dfs_code *)l2->data);
 		g_list_free(l2);
+
+		lend = MPI_Wtime();
+
+		printf("r%d: edge %d took %g\n", id, ind, lend-lstart); 
 	}
 
 	cleanup_map(projection_map);
