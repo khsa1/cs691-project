@@ -1,5 +1,5 @@
 
-SOURCES=main.tex refs.bib motivation.tex algorithm.tex implementation.tex\
+SOURCES=main.tex refs.bib motivation.tex implementation.tex appendix.tex\
 	abstract.tex keywords.tex results.tex conclusions.tex related.tex
 
 
