@@ -299,7 +299,9 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	GList *sub_graphs;
 	struct subgraph *sg;
 	MPI_Status status;
+	double gstart, gend, pstart, pend;
 
+	gstart = MPI_Wtime();
 
 	if (gs->dfs_codes != NULL)
 		g_list_free_full(gs->dfs_codes, (GDestroyNotify)free);
@@ -400,16 +402,39 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 	total = g_list_length(keys);
 	my_first = (total/np)*id + ((id < (total%np)) ? id : (total%np));
 	my_last  = (total/np)*(id+1) + ((id < (total%np)) ? (id+1) : (total%np));
-	for (ind = my_first; ind < my_last; ind++) {
+	pstart = MPI_Wtime();
+	int id_counter=id-1, received_id = -1;
+        if (np == 1)
+		id_counter = 0;
+	if(np > 1 && id==0) {
+		id_counter = np;
+		while(id_counter < total+np-1) {
+			MPI_Recv(&received_id, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Send(&id_counter, 1, MPI_INT, received_id, 0, MPI_COMM_WORLD);
+			id_counter++;
+		}
+	}
+	else {
+	//for (ind = my_first; ind < my_last; ind++) {
+	while(id_counter < total){
+		double lstart, lend;
+		ind = id_counter;	
 		l1 = g_list_nth(keys,ind);
 		struct dfs_code *dfsc = (struct dfs_code *)l1->data;
 		struct dfs_code *start_code; 
+
+		lstart = MPI_Wtime();
 
 		values = g_hash_table_lookup(projection_map, dfsc);
 
 		/* Lines 11-12 in the algorithm. Exit condition */
 		if (g_list_length(values) < gs->nsupport) {
 			//g_list_free(values);
+			if (np > 1 ) {
+			MPI_Send(&id, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+			MPI_Recv(&id_counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			} else
+				id_counter ++;
 			continue;
 		}
 
@@ -443,12 +468,26 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 		gs->dfs_codes = g_list_remove_link(gs->dfs_codes, l2);
 		//free((struct dfs_code *)l2->data);
 		g_list_free(l2);
+
+		lend = MPI_Wtime();
+
+		printf("r%d: Edge %d took %g seconds to mine\n", id,
+						id_counter, lend-lstart);
+
+		if (np > 1) {
+		MPI_Send(&id, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		MPI_Recv(&id_counter, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		} else
+			id_counter ++;
+	}
 	}
 
 	cleanup_map(projection_map);
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	double end = MPI_Wtime();
+	gend = MPI_Wtime();
+	pend = MPI_Wtime();
 
 	int curid, recvbuf = 0, start = 0, i;
 	int sendbuf = g_list_length(sub_graphs);
@@ -472,6 +511,8 @@ int project(struct gspan *gs, GList *frequent_nodes, GHashTable *freq_labels, in
 		}
 	}
 
+	printf("Time to execute: %g seconds\n", gend-gstart);
+	printf("Parallel portion: %g seconds\n", pend-pstart);
 
 	return end;
 }
