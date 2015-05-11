@@ -165,7 +165,7 @@ the slowest edge takes 3.026~seconds to mine. For such a dataset it should
 be possible to get good performance using our method. However, using
 32~processes only gives us a runtime of 24.15~seconds.
 
-The method which we implemented for these results statically partitions
+As described in more detail in Section~\ref{sec:implementation}, the method which we implemented for these results statically partitions
 the edges between the processes and each process independently mines each of
 its edges. The results in Table~\ref{tab:synth_dyn} contain results for a
 method that uses a centralized dynamic queue to allocate edges among the

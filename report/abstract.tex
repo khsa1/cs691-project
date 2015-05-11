@@ -9,8 +9,13 @@ gSpan and algorithms like it are difficult to parallelize as it does a
 recursive depth-first search of the solution space, and each search
 can take a variable amount of time.
 
-This paper demonstrates a parallel implementation of this algorithm that uses
-MPI to divide up the search space among multiple nodes within a cluster to
-provide faster overall search times.
+This paper demonstrates two parallel implementations of this algorithm that
+use MPI to divide up the search space among multiple nodes within a cluster to
+provide faster overall search times. We generally observe reasonable speedup
+on small numbers of nodes but not on larger numbers of nodes. However, we
+observe that the parallel performance of our method is dependent on the
+dataset used. The limitations of these methods are explained and we suggest
+a third implementation that should outperform our two current methods by
+more evenly dividing the work, regardless of the structure of our dataset.
 
 \end{abstract}

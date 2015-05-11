@@ -7,6 +7,32 @@
 \subsection{Conclusion}
 \label{subsec:conclusions}
 
+We observed in Section~\ref{sec:results} that our method is highly dependent
+on the structure of the dataset that is mined.
+
+Generally, reasonable speedup was observed on small numbers of processes. For
+the synthetic dataset we observed a reduction of runtime from 76.95~seconds
+in serial to 51.89~seconds with two processes, a speedup of 1.483. A similar
+speedup of 1.348 was observed for the Compound\_422 dataset. The MCG-7 dataset
+demonstrates the worst-case behavior of our method. The serial runtime of
+2503.03~seconds can only be reduced to 2272.73~seconds, a speedup of just
+1.101. As discussed in Section~\ref{sec:results}, since our method
+parallelizes the gspan algorithm by splitting up the edges between processes
+but does not parallelize the mining of each individaul edge our method cannot
+perform faster than the time it takes to mine the slowest edge. So, if we
+use our method on a dataset such as MCG-7 in which one edge takes much longer
+than all other edges we observe poor performance.
+
+Since each edge takes an indeterminate amount of time to mine, we developed
+a dynamic implementation of our method. This produces slightly better results
+for datasets such as the synthetic dataset where edges take approximately
+the same amount to mine since the work is more evenly split between processes,
+however we still observe poor performance for datasets such as MCG-7 in which
+one edge takes much longer to mine than all other edges.
+Thus, other method of parallelization are necessary to improve parallel
+performance by parallelizing the actual mining of individual edges rather
+than splitting edges between processes.
+
 \subsection{Future Work}
 \label{subsec:future}
 
@@ -23,11 +49,8 @@ passing subgraphs between MPI processes is non-trivial. Since
 linked-lists are not stored in contiguous memory and the size of these
 linked-lists are not known, this would most likely require the use of arrays
 to pass data between MPI processes.
-
-Finally, we would be interested in a dynamic queueing mechanism to farm
-the work of child candidate graph generation out to parallel nodes. Since
-the subgraph mining subprocedure is recursive and we do not know how many
-calls are necessary for completion at the beginning of the algorithm it is
-possible that one process can take much longer than other processes to
-complete. A dynamic queueing mechanism would avoid this problem by giving work
-to idling processes.
+The benefit of this method, however, would be significant. Since our current
+methods cannot perform faster than it takes to mine the slowest edge but this
+method would parallelize the mining of an individual edge. By parallelizing
+the work of mining an edge it would be possible to get signicantly better
+perfornance.
