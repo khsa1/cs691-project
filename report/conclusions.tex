@@ -4,13 +4,13 @@
 \subsection{Comparison to other implementations}
 \label{subsec:comparison}
 
-Compared to other parallel implementations, our impleentation would need
+Compared to other parallel implementations, our implementations would need
 further refinement to achieve similar efficiency.  Buehrer, et al. show
 much higher speedup on a synthetic dataset of ~26 (for 32 nodes), while 
 we show a speedup of ~3.  As we do not have the exact same dataset to test
 on, apples-to-apples comparison is difficult, but such a large difference
 would indicate much greater speedups in general compared to our 
-implementaiton.   
+implementation.   
 
 The main reason for this is that we are parallelizing the mining of each 
 initial edges, and given the nature of depth first search, mining one edge 
@@ -53,7 +53,7 @@ than splitting edges between processes.
 
 Our current implementation is a pure MPI implementation. In the future we
 hope to develop a hybrid MPI-OpenMP implementation. This implementation
-would use a combination of MPI for inter-node communcation and OpenMP
+would use a combination of MPI for inter-node communication and OpenMP
 for intra-node, shared memory communcation.
 
 In our current implementation, the entire database is stored on each node.
@@ -67,5 +67,5 @@ to pass data between MPI processes.
 The benefit of this method, however, would be significant. Since our current
 methods cannot perform faster than it takes to mine the slowest edge but this
 method would parallelize the mining of an individual edge. By parallelizing
-the work of mining an edge it would be possible to get signicantly better
-perfornance.
+the work of mining an edge it would be possible to get significantly better
+performance.
