@@ -28,14 +28,14 @@ is highly dependent on the structure of the dataset that is mined.
 Generally, reasonable speedup was observed on small numbers of processes. For
 the synthetic dataset we observed a reduction of runtime from 76.95~seconds
 in serial to 51.89~seconds with two processes, a speedup of 1.483. A similar
-speedup of 1.348 was observed for the Compound\_422 dataset. The MCG-7 dataset
+speedup of 1.348 was observed for the Compound\_422 dataset. The MCF-7 dataset
 demonstrates the worst-case behavior of our method. The serial runtime of
 2503.03~seconds can only be reduced to 2272.73~seconds, a speedup of just
 1.101. As discussed in Section~\ref{sec:results}, since our method
 parallelizes the gspan algorithm by splitting up the edges between processes
 but does not parallelize the mining of each individual edge our method cannot
 perform faster than the time it takes to mine the slowest edge. So, if we
-use our method on a dataset such as MCG-7 in which one edge takes much longer
+use our method on a dataset such as MCF-7 in which one edge takes much longer
 than all other edges we observe poor performance.
 
 Since each edge takes an indeterminate amount of time to mine, we developed
@@ -43,7 +43,7 @@ a dynamic implementation of our method. This produces slightly better results
 for datasets such as the synthetic dataset where edges take approximately
 the same amount of time to mine since the work is more evenly split between
 processes, however we will still observe poor performance for datasets such as
-MCG-7 in which one edge takes much longer to mine than all other edges. Thus,
+MCF-7 in which one edge takes much longer to mine than all other edges. Thus,
 other method of parallelization are necessary to improve parallel performance
 by parallelizing the actual mining of individual edges rather than splitting
 edges between processes.
