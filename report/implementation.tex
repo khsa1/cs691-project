@@ -28,7 +28,7 @@ All other processes are workers that mine their edge. Once a worker process
 finishes mining its edge it will send a message with its rank to process 0.
 Process 0 will then send back the id of the next edge that needs to be mined
 and will increment the counter. Once the edge id of each process is greater
-than the total number of edges for each process we know that the all edges
+than the total number of edges for each process we know that all edges
 have been mined. 
 
 In both implementations, after creating the local list of subgraphs we
