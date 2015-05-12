@@ -6,12 +6,12 @@ the graphs from the input file. The database of graphs is
 stored as a doubly-linked-list using the GLib GList structure.
 
 The nodes in the database are sorted by their frequency. The second input
-into our code is the minimum support. We prune all infrequent nodes and
-edges that do not satisfy this minimum support. The list of subgraphs is
-intially defined to be all frequent 1-edge graphs in the database. 
-This list of subgraphs is stored on each process.
+into our code is the minimum support, $\sigma$. We prune all infrequent nodes
+and edges that do not satisfy this minimum support. The list of subgraphs is
+initially defined to be all frequent 1-edge graphs in the database.  This list
+of subgraphs is stored on each process.
 
-In our first implementation, the list of 1-edge graphs is evenly distribued
+In our first implementation, the list of 1-edge graphs is evenly distributed
 among the processes. Each of these edges is mined by recursively calling the
 subgraph mining subprocedure to grow the subgraphs in order to find all
 frequent descendants.
@@ -20,8 +20,9 @@ minimum support or the subgraph and its descendants have already been
 discovered.
 
 Unlike the first implementation in which all edges are statically allocated
-to each process, the second implementation uses a dynamic centralized queue
-to allocate edges to processes. In this method, process 0 acts as the master
+to each process, the second implementation uses centralized dynamic
+load balancing to allocate edges to processes.
+In this method, process 0 acts as the master
 process which contains a counter with the next edge that needs to be mined.
 All other processes are workers that mine their edge. Once a worker process
 finishes mining its edge it will send a message with its rank to process 0.

@@ -6,14 +6,14 @@
 
 Compared to other parallel implementations, our implementations would need
 further refinement to achieve similar efficiency.  Buehrer, et al. show
-much higher speedup on a synthetic dataset of ~26 (for 32 nodes), while 
-we show a speedup of ~3.  As we do not have the exact same dataset to test
-on, apples-to-apples comparison is difficult, but such a large difference
-would indicate much greater speedups in general compared to our 
-implementation.   
+much higher speedup on a synthetic dataset of ~26 (for 32 nodes on a shared
+memory system), while we show a speedup of ~3.  As we do not have the exact
+same dataset to test on, apples-to-apples comparison is difficult, but such a
+large difference would indicate much greater speedups in general compared to
+our implementation.   
 
 The main reason for this is that we are parallelizing the mining of each 
-initial edges, and given the nature of depth first search, mining one edge 
+initial edge, and given the nature of depth first search, mining one edge 
 can take the majority of the runtime.  If we implemented a similar 
 queue-based parallelization of the mining itself, we should achieve similar 
 results to Buehrer.  Alternatively, we could use MPI to distribute the 
@@ -22,8 +22,8 @@ initial load, and use Buehrer's technique internal to each node.
 \subsection{Conclusion}
 \label{subsec:conclusions}
 
-We observed in Section~\ref{sec:results} that our method is highly dependent
-on the structure of the dataset that is mined.
+We observed in Section~\ref{sec:results} that the performance of our method
+is highly dependent on the structure of the dataset that is mined.
 
 Generally, reasonable speedup was observed on small numbers of processes. For
 the synthetic dataset we observed a reduction of runtime from 76.95~seconds
@@ -33,7 +33,7 @@ demonstrates the worst-case behavior of our method. The serial runtime of
 2503.03~seconds can only be reduced to 2272.73~seconds, a speedup of just
 1.101. As discussed in Section~\ref{sec:results}, since our method
 parallelizes the gspan algorithm by splitting up the edges between processes
-but does not parallelize the mining of each individaul edge our method cannot
+but does not parallelize the mining of each individual edge our method cannot
 perform faster than the time it takes to mine the slowest edge. So, if we
 use our method on a dataset such as MCG-7 in which one edge takes much longer
 than all other edges we observe poor performance.
@@ -41,12 +41,12 @@ than all other edges we observe poor performance.
 Since each edge takes an indeterminate amount of time to mine, we developed
 a dynamic implementation of our method. This produces slightly better results
 for datasets such as the synthetic dataset where edges take approximately
-the same amount to mine since the work is more evenly split between processes,
-however we still observe poor performance for datasets such as MCG-7 in which
-one edge takes much longer to mine than all other edges.
-Thus, other method of parallelization are necessary to improve parallel
-performance by parallelizing the actual mining of individual edges rather
-than splitting edges between processes.
+the same amount of time to mine since the work is more evenly split between
+processes, however we will still observe poor performance for datasets such as
+MCG-7 in which one edge takes much longer to mine than all other edges. Thus,
+other method of parallelization are necessary to improve parallel performance
+by parallelizing the actual mining of individual edges rather than splitting
+edges between processes.
 
 \subsection{Future Work}
 \label{subsec:future}
@@ -54,7 +54,7 @@ than splitting edges between processes.
 Our current implementation is a pure MPI implementation. In the future we
 hope to develop a hybrid MPI-OpenMP implementation. This implementation
 would use a combination of MPI for inter-node communication and OpenMP
-for intra-node, shared memory communcation.
+for intra-node, shared memory communication.
 
 In our current implementation, the entire database is stored on each node.
 We are interested in developing a distributed structure for the database that

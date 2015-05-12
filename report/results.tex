@@ -7,13 +7,13 @@ a support of 0.05. The serial runtime is 76.95~seconds. By doubling
 the number of processes we observe a decrease in runtime of 51.89. This
 is due a speedup of 1.483. Further increasing the number of processes continues
 to decrease the runtime, although the speedup continues to be suboptimal.
-Figure~\ref{fig:synth} conains plots of runtime, speedup, and efficiency for
+Figure~\ref{fig:synth} contains plots of runtime, speedup, and efficiency for
 these runs. We clearly observe with these plots the decrease in runtime as the
-number of processes increases. We also observe the degredation in speedup and
+number of processes increases. We also observe the degradation in speedup and
 efficiency as the number of processes increases.
 
 
-\begin{table}
+\begin{table}[H]
 \centering
 \begin{tabular}{cccc}
 \hline
@@ -32,7 +32,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 \label{tab:synth}
 \end{table}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{tabular}{ccc}
 \includegraphics[width=0.3\textwidth]{synth_time.png} &
@@ -56,12 +56,12 @@ Further increasing the number of processes results in an insignificant decrease
 in runtime.
 Figure~\ref{fig:compound} contains plots of runtime, speedup, and efficiency
 for these runs. The runtime plot clearly demonstrates the initial decrease in
-runtime for smaller number of nodes, and the leveling of the runtime for larger
+runtime for smaller number of nodes, and the leveling off of the runtime for larger
 numbers of nodes. We also observe the degradation in speedup and efficiency,
 particularly for large numbers of nodes.
 
 
-\begin{table}
+\begin{table}[H]
 \centering
 \begin{tabular}{cccc}
 \hline
@@ -80,7 +80,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 \label{tab:compound}
 \end{table}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{tabular}{ccc}
 \includegraphics[width=0.3\textwidth]{compound_time.png} &
@@ -108,7 +108,7 @@ our code on multiple nodes for this dataset. We observe that the speedup and
 efficiency quickly deteriorate.
 
 
-\begin{table}
+\begin{table}[H]
 \centering
 \begin{tabular}{cccc}
 \hline
@@ -127,7 +127,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 \label{tab:mcg7}
 \end{table}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{tabular}{ccc}
 \includegraphics[width=0.3\textwidth]{mcg7_time.png} &
@@ -150,7 +150,7 @@ MPI processes we cannot perform any faster than it takes to
 mine the slowest edge.
 We can see that for the Compound\_422 and MCG-7 datasets our overall runtime
 is very close to the runtime of the slowest edge. For the Compound\_422
-dataset, for instance, a runtime of 31.16~seconds is acheived with
+dataset, for instance, a runtime of 31.16~seconds is achieved with
 16~processes. Since the slowest edge takes 31.157~seconds it is not surprising
 that increasing the number of processes 32 increases the runtime. Since the
 serial time is only 75.92~seconds and we cannot have a runtime lower than
@@ -158,43 +158,46 @@ serial time is only 75.92~seconds and we cannot have a runtime lower than
 The MCG-7 dataset demonstrates this issue more clearly. Our serial runtime
 is 2503.03~seconds and the slowest edge takes 2060.85~seconds. This means
 that no matter how many processes we use it is not possible to even halve
-our runtime. In fact, we can acheive very close to this runtime for our
+our runtime. In fact, we can achieve very close to this runtime for our
 overall code when using 8~processes.
 However, the synthetic dataset has a serial runtime of 76.95~seconds and
 the slowest edge takes 3.026~seconds to mine. For such a dataset it should
 be possible to get good performance using our method. However, using
 32~processes only gives us a runtime of 24.15~seconds.
 
-As described in more detail in Section~\ref{sec:implementation}, the method which we implemented for these results statically partitions
-the edges between the processes and each process independently mines each of
-its edges. The results in Table~\ref{tab:synth_dyn} contain results for a
-method that uses a centralized dynamic queue to allocate edges among the
-processes using the synthetic dataset. We do not include results for the
-Compound\_422 and MCG-7 datasets as we have shown that our method cannot
-perform any better due to the time it takes to mine the slowest edge.
+As described in more detail in Section~\ref{sec:implementation}, the method
+which we implemented for these results statically partitions the edges between
+the processes and each process independently mines each of its edges. The
+results in Table~\ref{tab:synth_dyn} contain results for a method that uses a
+centralized dynamic load balancing to allocate edges among the processes
+using the synthetic dataset. We do not include results for the
+Compound\_422 and MCG-7 datasets as we have shown that our method
+cannot perform any better due to the time it takes to mine the slowest edge.
 The hope is that this more evenly
-distribute the work between the processes. In this method process 0 will
+distributes the work between the processes. In this method process 0 will
 contain a counter with the next edge that needs to be mined. All other
 processes will mine an edge. Once a process finishes mining an edge it will
 send a message to process 0 telling it that it is finished. If there are still
-edges to be mined process 0 sends the id of the next edge. The first column of
+edges to be mined process 0 sends the id of the next edge.
+
+The first column of
 Table~\ref{tab:synth_dyn} contains the number of worker processes used, the
 second column contains the runtime, the third column contains the speedup, and
-the fourth column contains the efficiency.
-We observe a small increase in runtime using 1 and 2 processes due to the
-increase in communication between processes. However, for larger numbers of
-processes there is an improvement in runtime using this method for the
-previous static method. However, the improvement is not significant and the
-we observe all modest improvements in speedup and efficiency over the previous
-method. For instance, using 32 processes we now have a speedup of 4.845 and
-efficiency of 0.151, compared to the previous speedup of 3.186 and efficiency
-of 0.100. Although this is an improvement, our speedup and efficiency are still
-suboptimal. This can be explained by the increased MPI communcation between
-processes. After an edge is mined, two messages are sent from the finished process
-to process 0, compared to no communcation required in the static implementation.
+the fourth column contains the efficiency.  We observe a small increase in
+runtime using 1 and 2 processes due to the increase in communication between
+processes. However, for larger numbers of processes there is an improvement in
+runtime using this method for the previous static method. However, the
+improvement is not significant and the we observe all modest improvements in
+speedup and efficiency over the previous method. For instance, using 32
+processes we now have a speedup of 4.845 and efficiency of 0.151, compared to
+the previous speedup of 3.186 and efficiency of 0.100. Although this is an
+improvement, our speedup and efficiency are still suboptimal. This can be
+explained by the increased MPI communication between processes. After an edge
+is mined, two messages are sent from the finished process to process 0,
+compared to no communication required in the static implementation.
 
 
-\begin{table}
+\begin{table}[H]
 \centering
 \begin{tabular}{cccc}
 \hline
@@ -209,11 +212,11 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 \hline
 \end{tabular}
 \caption{Runtime, speedup, and efficiency for synthetic dataset with support
-         0.05 using dynamic centralized queueing.}
+         0.05 using centralized dynamic load balancing.}
 \label{tab:synth_dyn}
 \end{table}
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{tabular}{ccc}
 \includegraphics[width=0.3\textwidth]{synth_dyn_time.png} &
@@ -222,7 +225,8 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 (a) & (b) & (c) \\
 \end{tabular}
 \caption{Plots of (a) runtime, (b) speedup, and (c) efficiency for
-         synthetic dataset with support 0.05 dynamic centralized queueing.}
+         synthetic dataset with support 0.05 centralized dynamic load
+         balancing.}
 \label{fig:synth_dyn}
 \end{figure}
 
@@ -241,7 +245,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 %\hline
 %\end{tabular}
 %\caption{Runtime, speedup, and efficiency for Compound\_422 dataset with
-%         support 0.1 using dynamic centralized queueing.}
+%         support 0.1 using centralized dynamic load balancing.}
 %\label{tab:compound_dyn}
 %\end{table}
 
@@ -260,6 +264,6 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 %\hline
 %\end{tabular}
 %\caption{Runtime, speedup, and efficiency for MCG-7 dataset with
-%         support 0.1 using dynamic centralized queueing.}
+%         support 0.1 using centralized dynamic load balancing.}
 %\label{tab:mcg_dyn}
 %\end{table}
