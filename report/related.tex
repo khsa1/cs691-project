@@ -1,29 +1,34 @@
 \section{Related Work}
 \label{sec:related}
 
+Early FSM algorithms used breadth first search methods to search the
+solution space \cite{AGM}\cite{FSG}.  These methods perform an exhaustive
+search of the solution space and have exponential runtime.  Other methods, 
+like SUBDUE\cite{subdue}, use approximation methods to efficiently 
+identify candidate subgraphs which are then tested using a more exhaustive
+method. The most popular current FSM algorithms use depth first search 
+methods and heuristics to cut down on the search space. These include
+Gaston\cite{gaston}, FFSM\cite{ffsm}, and gSpan\cite{gspan}.  Since
+gSpan is widely used, we chose it as our target for parallelization.
+
+Parallelization of gSpan is not a new idea. 
 Buehrer et al. produced a shared-memory
 parallel version of a gSpan-like algorithm that achieved good speedup on a 
 single NUMA system\cite{buehrer2005parallel}.  They achieved this by 
 farming out the work of doing the depth first search for a candidate 
-subgraph to a different thread, and used a dynamic queueing 
+subgraph to different threads, and used a dynamic queueing 
 system to spread the work out more evenly and address the variable
-mining time issue.  In this work, they cite 
-memory contention as one of their main bottlenecks.
+mining time issue.  They cite memory contention as one of their main 
+bottlenecks.
 
 More recently, Wang et al. parallelized gSpan using a 
 GPU\cite{gspancuda}, again achieving good results.  They parallelized both
 the subgraph mining and the generation of the DFS canonical lexical 
 ordering of nodes.  They rely on the built-in NVIDIA CUDA scheduler to handle
-any queued up work from what they find. However, the use of a 
-GPU without any other higher-layer parallel framework limits the problem
-size to the relatively small resources of a GPU. 
+any queued up work. However, the use of a GPU without any other higher-layer 
+parallel framework limits the problem size to the relatively small resources 
+of a GPU. 
 
-The success of these two previous implementations leads to two interesting
-conclusions:
-\begin{itemize}
-	\item{That gSpan-like systems can be parallelized}
-	\item{That even if a pure MPI implementation is not as performant, 
-		there may be the possibility of using a hybrid approach
-		that uses MPI to distribute work to these single-node 
-		(or single GPU) implementations}
-\end{itemize}
+The success of these two gSpan implementations leads us to believe that an
+MPI implementation of gSpan is not only possible, and can achieve good 
+performance.
