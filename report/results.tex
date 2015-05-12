@@ -1,6 +1,12 @@
 \section{Results}
 \label{sec:results}
 
+We tested our system against various datasets collected from the internet.
+The first is a 1000-graph synthetic example dataset provided with the 
+GraphGen utility. We also used two chamical compond databases available as
+examples with several gSpan implementations (Compound\_422 and Chemical\_340),
+and the MCF-7 breast cancer tumor description dataset.
+
 Table~\ref{tab:synth} contains the runtime, speedup, and efficiency of runs
 produced by our parallel gspan algorithm on a synthetic dataset with
 a support of 0.05. The serial runtime is 76.95~seconds. By doubling
@@ -93,7 +99,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 \label{fig:compound}
 \end{figure}
 
-Table~\ref{tab:mcg7} contains results for the MCG-7 dataset with
+Table~\ref{tab:mcg7} contains results for the MCF-7 dataset with
 support of 0.1. This dataset demonstrates the worst case results for our
 method. The serial runtime for this dataset is 2503.03~seconds.
 Doubling the number of processes results in a runtime of 2272.73~seconds. This
@@ -122,7 +128,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 32    & 2234.83 & 1.142  & 0.036 \\
 \hline
 \end{tabular}
-\caption{Runtime, speedup, and efficiency for MCG-7 with support
+\caption{Runtime, speedup, and efficiency for MCF-7 with support
          0.1.}
 \label{tab:mcg7}
 \end{table}
@@ -136,7 +142,7 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 (a) & (b) & (c) \\
 \end{tabular}
 \caption{Plots of (a) runtime, (b) speedup, and (c) efficiency for
-         MCG-7 with support 0.1.}
+         MCF-7 with support 0.1.}
 \label{fig:mcg7}
 \end{figure}
 
@@ -144,18 +150,18 @@ Cores & Runtime (seconds) & Speedup &  Eff.  \\
 During these runs we found that
 for the synthetic dataset one of the edges takes 3.026~seconds to mine,
 for the Compound\_422 dataset one of the edges takes 31.157~seconds to mine,
-and for the MCG-7 dataset one of the edges takes 2060.85~seconds to mine.
+and for the MCF-7 dataset one of the edges takes 2060.85~seconds to mine.
 Since our method parallelizes the algorithm by splitting up the edges between
 MPI processes we cannot perform any faster than it takes to
 mine the slowest edge.
-We can see that for the Compound\_422 and MCG-7 datasets our overall runtime
+We can see that for the Compound\_422 and MCF-7 datasets our overall runtime
 is very close to the runtime of the slowest edge. For the Compound\_422
 dataset, for instance, a runtime of 31.16~seconds is achieved with
 16~processes. Since the slowest edge takes 31.157~seconds it is not surprising
 that increasing the number of processes 32 increases the runtime. Since the
 serial time is only 75.92~seconds and we cannot have a runtime lower than
 31.16~seconds this explains our poor speedup.
-The MCG-7 dataset demonstrates this issue more clearly. Our serial runtime
+The MCF-7 dataset demonstrates this issue more clearly. Our serial runtime
 is 2503.03~seconds and the slowest edge takes 2060.85~seconds. This means
 that no matter how many processes we use it is not possible to even halve
 our runtime. In fact, we can achieve very close to this runtime for our
@@ -171,7 +177,7 @@ the processes and each process independently mines each of its edges. The
 results in Table~\ref{tab:synth_dyn} contain results for a method that uses a
 centralized dynamic load balancing to allocate edges among the processes
 using the synthetic dataset. We do not include results for the
-Compound\_422 and MCG-7 datasets as we have shown that our method
+Compound\_422 and MCF-7 datasets as we have shown that our method
 cannot perform any better due to the time it takes to mine the slowest edge.
 The hope is that this more evenly
 distributes the work between the processes. In this method process 0 will
