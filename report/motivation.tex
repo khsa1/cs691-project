@@ -20,7 +20,26 @@ To our knowledge this would be the first FSM system implemented with MPI.
 \subsection{Applications}
 \label{subsec:applications}
 
-\subsection{Complexity}
+Many problems rely on looking for common patterns in substructures to 
+identify similarities between related substances.  The main area 
+for this is protein structures and toxicology discovery, as both 
+protein structures\cite{substructures} and chemicals\cite{toxic} can be easily represented as 
+graphs. Other applications include video indexing and compression\cite{videosub}, 
+image classification\cite{de2012polynomial}\cite{plagram}, storage compression\cite{stored}, and web link 
+indexing\cite{freqtrees}\cite{webgraphs}.
+
+\subsection{Definition}
 \label{subsec:complexity}
+
+A labeled graph $G'$ is a {\bf subgraph} of $G$ if
+\begin{itemize}
+	\item{All vertices of $G'$ are in $G$}
+	\item{For each vertex in both graphs, the vertex labels are the same}
+	\item{All edges of $G'$ are in $G$ }
+	\item{For each edge in both graphs, the vertex labels are the same}
+\end{itemize}
+
+A graph is a {\bf frequent subgraph} of a {\bf graph database} if the 
+subgraph appears in $\sigma$ or more graphs within the database.
 
 
